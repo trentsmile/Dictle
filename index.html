@@ -1,0 +1,1895 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dictle – Daily Definition Game</title>
+  <meta name="description" content="Guess the word's definition. One word. One attempt. Every day." />
+  <meta property="og:type"        content="website" />
+  <meta property="og:url"         content="https://playdictle.vercel.app/" />
+  <meta property="og:title"       content="Dictle – Daily Definition Game" />
+  <meta property="og:description" content="One word. One attempt. Every day." />
+  <meta name="twitter:card"       content="summary" />
+  <meta name="twitter:title"      content="Dictle – Daily Definition Game" />
+  <meta name="twitter:description" content="One word. One attempt. Every day." />
+  <meta property="og:image"         content="https://playdictle.vercel.app/og.png" />
+  <meta property="og:image:width"   content="1200" />
+  <meta property="og:image:height"  content="630" />
+  <meta name="twitter:card"         content="summary_large_image" />
+  <link rel="canonical"             href="https://playdictle.vercel.app/" />
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"WebApplication","name":"Dictle","url":"https://playdictle.vercel.app/","description":"A daily word definition game. One word, one attempt, every day.","applicationCategory":"Game","operatingSystem":"All"}
+  </script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --indigo:   #5C4FD6;
+      --indigo-h: #4840B8;
+      --bg:       #FAFAF8;
+      --surface:  #FFFFFF;
+      --border:   #EBEBEB;
+      --text:     #18150F;
+      --muted:    #999490;
+      --good:     #22855A;
+      --mid:      #C47B0A;
+      --bad:      #B83030;
+      --shadow:   0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
+      --r: 14px;
+    }
+    [data-theme="dark"] {
+      --bg:      #111009;
+      --surface: #1B1A12;
+      --border:  #2A2820;
+      --text:    #F0EBE0;
+      --muted:   #706A60;
+      --shadow:  0 1px 3px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.3);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 16px 60px;
+      transition: background .3s, color .3s;
+    }
+
+    /* ── Header ── */
+    header {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 1.6rem;
+      color: var(--indigo);
+      letter-spacing: -0.01em;
+    }
+
+    .header-right { display: flex; align-items: center; gap: 10px; }
+
+    .streak-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .streak-badge .pill {
+      background: color-mix(in srgb, var(--indigo) 12%, transparent);
+      border: 1px solid color-mix(in srgb, var(--indigo) 40%, transparent);
+      color: var(--indigo);
+      border-radius: 99px;
+      padding: 2px 8px;
+      font-size: 0.68rem;
+      font-weight: 500;
+    }
+
+    /* Theme toggle */
+    .toggle {
+      width: 38px; height: 22px;
+      border-radius: 99px;
+      background: var(--border);
+      border: none;
+      cursor: pointer;
+      position: relative;
+      transition: background .3s;
+      flex-shrink: 0;
+    }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--muted);
+      top: 3px; left: 3px;
+      transition: transform .3s, background .3s;
+    }
+    [data-theme="dark"] .toggle::after {
+      transform: translateX(16px);
+      background: var(--indigo);
+    }
+
+    /* ── Layout ── */
+    main { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 12px; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      transition: background .3s, border-color .3s;
+    }
+
+    /* ── Word card ── */
+    .word-card { padding: 28px 24px 24px; }
+
+    .day-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    /* THE STAR — giant word */
+    #word-display {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: clamp(3rem, 11vw, 4.5rem);
+      line-height: 1;
+      color: var(--indigo);
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+
+    #word-pos {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-style: italic;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    /* ── Input card ── */
+    .input-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      padding: 12px 14px;
+      resize: none;
+      min-height: 90px;
+      outline: none;
+      transition: border-color .2s, background .3s;
+    }
+    textarea::placeholder { color: var(--muted); }
+    textarea:focus { border-color: var(--indigo); }
+    textarea:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .char-counter {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      color: var(--muted);
+      text-align: right;
+      margin-top: 5px;
+    }
+    .char-counter.warn { color: var(--mid); }
+    .char-counter.full { color: var(--bad); }
+
+    .btn-submit {
+      width: 100%;
+      padding: 13px;
+      background: var(--indigo);
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 12px;
+      transition: background .15s, transform .1s, opacity .2s;
+    }
+    .btn-submit:hover:not(:disabled) { background: var(--indigo-h); }
+    .btn-submit:active:not(:disabled) { transform: scale(0.985); }
+    .btn-submit:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    #already-played {
+      display: none;
+      text-align: center;
+      padding: 10px 0 2px;
+    }
+    #already-played p {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      margin-bottom: 3px;
+    }
+    #already-played strong {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 1.4rem;
+      color: var(--indigo);
+    }
+
+    .error-banner {
+      display: none;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--bad);
+      background: color-mix(in srgb, var(--bad) 8%, transparent);
+      border: 1px solid color-mix(in srgb, var(--bad) 20%, transparent);
+      border-radius: 8px;
+      padding: 9px 13px;
+      margin-top: 10px;
+    }
+
+    /* ── Score reveal overlay ── */
+    #score-reveal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--indigo);
+      z-index: 100;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      animation: revealIn .6s cubic-bezier(.22,1,.36,1) both;
+    }
+    #score-reveal.active { display: flex; }
+    @keyframes revealIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .reveal-word {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: clamp(1.2rem, 5vw, 1.6rem);
+      color: rgba(255,255,255,0.35);
+      letter-spacing: -0.01em;
+      margin-bottom: 12px;
+    }
+
+    .reveal-score {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: clamp(6rem, 28vw, 10rem);
+      line-height: 1;
+      color: #fff;
+      letter-spacing: -0.04em;
+      transition: color .6s ease;
+    }
+
+    .reveal-denom {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 0.1em;
+      margin-top: 4px;
+      margin-bottom: 48px;
+    }
+
+    .reveal-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      max-width: 320px;
+      padding: 0 24px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity .6s ease, transform .6s cubic-bezier(.22,1,.36,1);
+    }
+    .reveal-actions.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .btn-lock {
+      width: 100%;
+      padding: 14px;
+      background: #fff;
+      color: var(--indigo);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      letter-spacing: 0.01em;
+      transition: opacity .15s;
+    }
+    .btn-lock:hover { opacity: 0.9; }
+
+    .btn-retry {
+      width: 100%;
+      padding: 13px;
+      background: transparent;
+      color: rgba(255,255,255,0.75);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 500;
+      border: 1.5px solid rgba(255,255,255,0.3);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: border-color .15s, color .15s;
+    }
+    .btn-retry:hover { border-color: rgba(255,255,255,0.7); color: #fff; }
+
+    .reveal-attempt-warn {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      color: rgba(255,255,255,0.35);
+      letter-spacing: 0.06em;
+      text-align: center;
+      max-width: 260px;
+      line-height: 1.5;
+    }
+
+    .reveal-attempt-counter {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    /* ── Result card — social poster ── */
+    #results-card {
+      display: none;
+      padding: 0;
+      overflow: hidden;
+      animation: rise .45s cubic-bezier(.16,1,.3,1) both;
+    }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Dark poster — always dark so screenshots look consistent */
+    .poster {
+      --poster-accent: #8478F0;
+      background: #0E0C07;
+      padding: 32px 28px 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .poster::after {
+      content: '';
+      position: absolute;
+      bottom: -60px; right: -60px;
+      width: 260px; height: 260px;
+      background: radial-gradient(circle, rgba(92,79,214,.25) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    .poster-eyebrow {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      color: rgba(255,255,255,.28);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+    }
+
+    /* THE REAL STAR — word huge on dark */
+    .poster-word {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: clamp(3.5rem, 14vw, 5.5rem);
+      line-height: .9;
+      color: var(--poster-accent);
+      letter-spacing: -0.03em;
+      margin-bottom: 6px;
+      position: relative; z-index: 1;
+    }
+    .poster-pos {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-style: italic;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,.3);
+      margin-bottom: 28px;
+    }
+
+    .poster-score {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+    .poster-score-num {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 4rem;
+      line-height: 1;
+      color: #fff;
+      letter-spacing: -0.04em;
+    }
+    .poster-score-denom {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: rgba(255,255,255,.3);
+      letter-spacing: 0.08em;
+      padding-bottom: 4px;
+    }
+
+    .poster-verdict {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      color: var(--poster-accent);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+    }
+
+
+
+    .poster-brand {
+      position: absolute;
+      bottom: 18px; right: 24px;
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 0.65rem;
+      color: rgba(255,255,255,.1);
+      letter-spacing: 0.12em;
+    }
+
+    /* Definition comparison */
+    .result-details { padding: 20px 24px 24px; }
+
+    .def-compare { display: flex; flex-direction: column; gap: 10px; }
+
+    .def-block {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 13px 15px;
+      transition: background .3s, border-color .3s;
+    }
+    .def-block-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.58rem;
+      color: var(--muted);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .def-block-text {
+      font-size: 0.9rem;
+      line-height: 1.55;
+      color: var(--text);
+    }
+    .def-block.correct { border-left: 3px solid var(--good); }
+    .def-block.correct .def-block-label { color: var(--good); }
+
+    .btn-share {
+      width: 100%;
+      padding: 13px;
+      background: transparent;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: border-color .2s, color .2s;
+    }
+    .btn-share:hover  { border-color: var(--indigo); color: var(--indigo); }
+    .btn-share.copied { border-color: var(--good);   color: var(--good); }
+
+    /* ── Hint chips ── */
+    .hint-section {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .hint-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.58rem;
+      color: var(--muted);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .hint-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+    .hint-chip {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      padding: 4px 10px;
+      border-radius: 99px;
+      border: 1px solid;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .hint-chip.hit {
+      background: color-mix(in srgb, var(--good) 10%, transparent);
+      border-color: color-mix(in srgb, var(--good) 35%, transparent);
+      color: var(--good);
+    }
+    .hint-chip.miss {
+      background: color-mix(in srgb, var(--bad) 8%, transparent);
+      border-color: color-mix(in srgb, var(--bad) 25%, transparent);
+      color: var(--bad);
+    }
+
+    footer {
+      margin-top: 40px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-align: center;
+    }
+
+    /* ── Sparkline ── */
+    .sparkline-wrap {
+      display: flex; align-items: flex-end; gap: 3px;
+      height: 22px; cursor: pointer;
+    }
+    .spark-bar {
+      width: 5px; border-radius: 2px;
+      background: color-mix(in srgb, var(--indigo) 30%, transparent);
+      min-height: 2px; transition: background .2s;
+    }
+    .spark-bar.today  { background: var(--indigo); }
+    .spark-bar:hover  { background: var(--indigo); }
+    .spark-bar.good   { background: color-mix(in srgb, var(--good) 55%, transparent); }
+    .spark-bar.good.today { background: var(--good); }
+    .spark-bar.mid    { background: color-mix(in srgb, var(--mid) 55%, transparent); }
+    .spark-bar.mid.today  { background: var(--mid); }
+    .spark-bar.bad    { background: color-mix(in srgb, var(--bad) 55%, transparent); }
+    .spark-bar.bad.today  { background: var(--bad); }
+
+    /* ── Hint text ── */
+    .input-hint {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.58rem; color: var(--muted);
+      letter-spacing: 0.06em; margin-top: 6px;
+    }
+
+    /* ── Stats modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 999; padding: 20px;
+      animation: fadeIn .2s ease both;
+    }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+    .modal-box {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 28px 24px 24px;
+      width: 100%; max-width: 400px;
+      box-shadow: var(--shadow);
+      animation: rise .3s cubic-bezier(.16,1,.3,1) both;
+    }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 22px;
+    }
+    .modal-title {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 1.2rem; color: var(--text);
+    }
+    .modal-close {
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); font-size: 1.1rem; padding: 4px;
+    }
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(4,1fr);
+      gap: 10px; margin-bottom: 24px;
+    }
+    .stat-cell {
+      text-align: center; background: var(--bg);
+      border: 1px solid var(--border); border-radius: 10px; padding: 12px 8px;
+    }
+    .stat-num {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 1.6rem; color: var(--indigo);
+      line-height: 1; margin-bottom: 4px;
+    }
+    .stat-lbl {
+      font-family: 'DM Mono', monospace; font-size: 0.52rem;
+      color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .hist-label {
+      font-family: 'DM Mono', monospace; font-size: 0.58rem;
+      color: var(--muted); letter-spacing: 0.12em;
+      text-transform: uppercase; margin-bottom: 10px;
+    }
+    .hist-chart { display: flex; flex-direction: column; gap: 5px; }
+    .hist-row   { display: flex; align-items: center; gap: 8px; }
+    .hist-range {
+      font-family: 'DM Mono', monospace; font-size: 0.58rem;
+      color: var(--muted); width: 46px; flex-shrink: 0;
+    }
+    .hist-bar-bg { flex:1; height:10px; background:var(--border); border-radius:99px; overflow:hidden; }
+    .hist-bar-fill {
+      height:100%; border-radius:99px; background:var(--indigo);
+      transition: width .5s cubic-bezier(.16,1,.3,1);
+    }
+    .hist-count {
+      font-family: 'DM Mono', monospace; font-size: 0.58rem;
+      color: var(--muted); width: 14px; text-align: right; flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Dictle</div>
+  <div class="header-right">
+    <div class="sparkline-wrap" id="sparkline" title="Your last 7 days — click for stats"></div>
+    <div class="streak-badge">🔥 <span class="pill" id="streak-count">0</span></div>
+    <button id="stats-btn" aria-label="Stats" style="background:none;border:none;cursor:pointer;font-size:1.1rem;padding:2px 4px;line-height:1;color:var(--muted)">📊</button>
+    <button class="toggle" id="theme-toggle" aria-label="Toggle dark mode"></button>
+  </div>
+</header>
+
+<main>
+
+  <div class="card word-card">
+    <div class="day-label"   id="day-label">—</div>
+    <div id="word-display">—</div>
+    <div id="word-pos"></div>
+  </div>
+
+  <div class="card">
+    <div class="input-label">Your definition</div>
+    <textarea id="user-input" maxlength="150" placeholder="What does it mean…" rows="3"></textarea>
+    <div class="char-counter" id="char-counter">0 / 150</div>
+    <div class="input-hint">Tip: a full sentence scores better than a single word</div>
+    <button class="btn-submit" id="btn-submit" disabled>Submit</button>
+    <div class="error-banner" id="error-banner"></div>
+    <div id="already-played">
+      <p>Already played today</p>
+      <strong id="ap-score">—</strong>
+    </div>
+  </div>
+
+  <div class="card" id="results-card">
+    <div class="poster">
+      <div class="poster-eyebrow" id="rp-day">—</div>
+      <div class="poster-word"    id="rp-word">—</div>
+      <div class="poster-pos"     id="rp-pos"></div>
+      <div class="poster-score">
+        <span class="poster-score-num"   id="score-number">0</span>
+        <span class="poster-score-denom">/ 100</span>
+      </div>
+      <div class="poster-verdict" id="verdict-text">—</div>
+      <span id="rp-emoji" style="display:none"></span>
+      <div class="poster-brand">DICTLE</div>
+    </div>
+    <div class="result-details">
+      <div class="def-compare">
+        <div class="def-block">
+          <div class="def-block-label">Your definition</div>
+          <div class="def-block-text" id="result-user-def">—</div>
+        </div>
+        <div class="def-block correct">
+          <div class="def-block-label">Correct definition</div>
+          <div class="def-block-text" id="result-correct-def">—</div>
+        </div>
+      </div>
+      <div class="hint-section">
+        <div class="hint-label">Scoring breakdown</div>
+        <div class="hint-chips" id="hint-chips"></div>
+      </div>
+      <button class="btn-share" id="btn-share"><span>📋</span> Copy result</button>
+      <div id="countdown-wrap" style="text-align:center;padding:16px 0 4px;border-top:1px solid var(--border);margin-top:16px;">
+        <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:4px;">Next word in</div>
+        <div id="countdown" style="font-family:'DM Serif Display',Georgia,serif;font-size:1.6rem;color:var(--text);letter-spacing:-0.02em;">--:--:--</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div id="score-reveal">
+  <div class="reveal-word" id="reveal-word">—</div>
+  <div class="reveal-score" id="reveal-score">0</div>
+  <div class="reveal-denom">/ 100</div>
+  <div class="reveal-attempt-counter" id="reveal-attempt-counter"></div>
+  <div class="reveal-actions" id="reveal-actions">
+    <button class="btn-lock" id="btn-lock">I'll take it</button>
+    <button class="btn-retry" id="btn-retry">Try again</button>
+    <div class="reveal-attempt-warn" id="reveal-warn"></div>
+  </div>
+</div>
+
+<footer>One word · One attempt · Every day</footer>
+
+<script>
+  /* ════════════════════════════════════════════════════
+   * WORD BANK — 54 entries, hardcoded
+   * Word selection is deterministic by UTC day so all
+   * users see the same word. Cycles every 54 days.
+   *
+   * NOTE on sources:
+   *  • Most words are standard English dictionary words.
+   *  • A handful (sonder, vellichor, kenopsia, limerence,
+   *    chrysalism, apricity) come from The Dictionary of
+   *    Obscure Sorrows or niche usage — not in Merriam-
+   *    Webster. They're intentionally included for
+   *    discovery value, but flag them if you want a
+   *    strictly-standard word list.
+   * ════════════════════════════════════════════════════ */
+  // ── WORD BANK ─────────────────────────────────────────────────────────────
+  // 210 words tagged easy / medium / hard.
+  // Difficulty guide:
+  //   easy   — widely known, core vocab, often encountered in everyday reading
+  //   medium — educated-adult vocabulary, may need a moment's thought
+  //   hard   — rare, technical, borrowed, or niche; likely to surprise most players
+  // ──────────────────────────────────────────────────────────────────────────
+
+  const WORDS = [
+
+    // ── EASY (70 words) ───────────────────────────────────────────────────
+    { tier:"easy", word:"empathy",       pos:"noun",      definition:"the ability to understand and share the feelings of another person" },
+    { tier:"easy", word:"paradox",       pos:"noun",      definition:"a statement that seems self-contradictory but may express a truth" },
+    { tier:"easy", word:"catalyst",      pos:"noun",      definition:"a person or thing that precipitates an event or change" },
+    { tier:"easy", word:"apathy",        pos:"noun",      definition:"lack of interest, enthusiasm, or concern" },
+    { tier:"easy", word:"serendipity",   pos:"noun",      definition:"the occurrence of fortunate events by chance" },
+    { tier:"easy", word:"labyrinth",     pos:"noun",      definition:"a complicated irregular network of passages or paths" },
+    { tier:"easy", word:"tenacious",     pos:"adjective", definition:"holding firmly to a purpose or belief; not giving up easily" },
+    { tier:"easy", word:"hubris",        pos:"noun",      definition:"excessive pride or self-confidence that leads to downfall" },
+    { tier:"easy", word:"catharsis",     pos:"noun",      definition:"the release of pent-up emotions through art or dramatic experience" },
+    { tier:"easy", word:"oblivion",      pos:"noun",      definition:"the state of being unaware of or forgotten by the world" },
+    { tier:"easy", word:"eloquent",      pos:"adjective", definition:"fluent and persuasive in speaking or writing" },
+    { tier:"easy", word:"zeitgeist",     pos:"noun",      definition:"the defining spirit or mood of a particular period in history" },
+    { tier:"easy", word:"axiom",         pos:"noun",      definition:"a statement regarded as self-evidently true" },
+    { tier:"easy", word:"inertia",       pos:"noun",      definition:"tendency to remain unchanged or resist change without an outside force" },
+    { tier:"easy", word:"nuance",        pos:"noun",      definition:"a subtle difference in meaning, expression, or response" },
+    { tier:"easy", word:"entropy",       pos:"noun",      definition:"gradual decline into disorder and unpredictability" },
+    { tier:"easy", word:"rhetoric",      pos:"noun",      definition:"language designed to persuade or impress, sometimes at the expense of honesty" },
+    { tier:"easy", word:"pensive",       pos:"adjective", definition:"engaged in deep or serious thought, often with a hint of sadness" },
+    { tier:"easy", word:"vicarious",     pos:"adjective", definition:"experienced through another person's actions rather than one's own" },
+    { tier:"easy", word:"panacea",       pos:"noun",      definition:"a solution or remedy claimed to cure all difficulties or diseases" },
+    { tier:"easy", word:"nostalgia",     pos:"noun",      definition:"a sentimental longing for the happiness of a former time or place" },
+    { tier:"easy", word:"ambiguous",     pos:"adjective", definition:"open to more than one interpretation; not having a clear meaning" },
+    { tier:"easy", word:"melancholy",    pos:"noun",      definition:"a deep, pensive, and long-lasting sadness" },
+    { tier:"easy", word:"cynical",       pos:"adjective", definition:"believing that people are motivated purely by self-interest; distrustful" },
+    { tier:"easy", word:"dilemma",       pos:"noun",      definition:"a situation in which a difficult choice must be made between two options" },
+    { tier:"easy", word:"autonomy",      pos:"noun",      definition:"the right or condition of self-government and independence" },
+    { tier:"easy", word:"arbitrary",     pos:"adjective", definition:"based on random choice or personal whim, not reason or system" },
+    { tier:"easy", word:"volatile",      pos:"adjective", definition:"liable to change rapidly and unpredictably, especially for the worse" },
+    { tier:"easy", word:"pragmatic",     pos:"adjective", definition:"dealing with things sensibly and realistically based on practical considerations" },
+    { tier:"easy", word:"resilient",     pos:"adjective", definition:"able to recover quickly from difficult conditions" },
+    { tier:"easy", word:"cliché",        pos:"noun",      definition:"a phrase or opinion so used it has lost its original meaning and force" },
+    { tier:"easy", word:"irony",         pos:"noun",      definition:"the expression of meaning using language that normally signifies the opposite" },
+    { tier:"easy", word:"surreal",       pos:"adjective", definition:"having the disorienting quality of a dream; bizarre and unreal" },
+    { tier:"easy", word:"verbose",       pos:"adjective", definition:"using more words than needed; wordy" },
+    { tier:"easy", word:"cathartic",     pos:"adjective", definition:"providing psychological relief through the expression of strong emotion" },
+    { tier:"easy", word:"eccentric",     pos:"adjective", definition:"unconventional and slightly strange in behaviour or appearance" },
+    { tier:"easy", word:"ambivalent",    pos:"adjective", definition:"having mixed or contradictory feelings about something" },
+    { tier:"easy", word:"candid",        pos:"adjective", definition:"truthful and straightforward; frank" },
+    { tier:"easy", word:"mundane",       pos:"adjective", definition:"lacking excitement or interest; dull and ordinary" },
+    { tier:"easy", word:"absurd",        pos:"adjective", definition:"wildly unreasonable or illogical; ridiculously incongruous" },
+    { tier:"easy", word:"profound",      pos:"adjective", definition:"very great or intense; having deep insight or understanding" },
+    { tier:"easy", word:"candour",      pos:"noun",      definition:"the quality of being open and honest in expression; frankness" },
+    { tier:"easy", word:"cynicism",      pos:"noun",      definition:"an inclination to believe that people are motivated purely by self-interest" },
+    { tier:"easy", word:"curt",          pos:"adjective", definition:"rudely brief in speech or manner; abrupt" },
+    { tier:"easy", word:"frugal",        pos:"adjective", definition:"sparing or economical with money or food; thrifty" },
+    { tier:"easy", word:"gregarious",    pos:"adjective", definition:"fond of the company of others; sociable" },
+    { tier:"easy", word:"placid",        pos:"adjective", definition:"not easily upset or excited; calm and peaceful" },
+    { tier:"easy", word:"vivid",         pos:"adjective", definition:"producing powerful feelings or strong, clear images in the mind" },
+    { tier:"easy", word:"naive",         pos:"adjective", definition:"showing a lack of experience, wisdom, or judgement" },
+    { tier:"easy", word:"stoic",         pos:"adjective", definition:"enduring pain or hardship without showing one's feelings or complaining" },
+    { tier:"easy", word:"euphoria",      pos:"noun",      definition:"a feeling or state of intense excitement and happiness" },
+    { tier:"easy", word:"schadenfreude", pos:"noun",      definition:"pleasure derived from another person's misfortune" },
+    { tier:"easy", word:"emulate",       pos:"verb",      definition:"to match or surpass, typically by imitation; to try to equal" },
+    { tier:"easy", word:"eloquence",     pos:"noun",      definition:"fluent, forceful, and persuasive use of language" },
+    { tier:"easy", word:"skeptic",       pos:"noun",      definition:"a person inclined to question or doubt accepted opinions" },
+    { tier:"easy", word:"bias",          pos:"noun",      definition:"prejudice in favour of or against one thing compared with another" },
+    { tier:"easy", word:"virtue",        pos:"noun",      definition:"behaviour showing high moral standards" },
+    { tier:"easy", word:"absolution",    pos:"noun",      definition:"formal release from guilt, obligation, or punishment" },
+    { tier:"easy", word:"ironic",        pos:"adjective", definition:"happening in the opposite way to what is expected, typically in an amusing way" },
+    { tier:"easy", word:"bliss",         pos:"noun",      definition:"perfect happiness; great joy" },
+    { tier:"easy", word:"frantic",       pos:"adjective", definition:"wildly excited or distraught with fear, anxiety, or other emotion" },
+    { tier:"easy", word:"mediocre",      pos:"adjective", definition:"of only moderate quality; not very good" },
+    { tier:"easy", word:"nostalgic",     pos:"adjective", definition:"feeling or evoking a sentimental longing for the past" },
+    { tier:"easy", word:"serene",        pos:"adjective", definition:"calm, peaceful, and untroubled; tranquil" },
+    { tier:"easy", word:"tension",       pos:"noun",      definition:"mental or emotional strain; a strained relationship between two parties" },
+    { tier:"easy", word:"wistful",       pos:"adjective", definition:"having a feeling of vague or regretful longing" },
+    { tier:"easy", word:"turmoil",       pos:"noun",      definition:"a state of great disturbance, confusion, or uncertainty" },
+    { tier:"easy", word:"whimsical",     pos:"adjective", definition:"playfully quaint or fanciful, especially in an appealing way" },
+
+    // ── MEDIUM (80 words) ─────────────────────────────────────────────────
+    { tier:"medium", word:"mellifluous",   pos:"adjective", definition:"having a pleasantly smooth and musical sound" },
+    { tier:"medium", word:"petrichor",     pos:"noun",      definition:"the earthy scent produced when rain falls on dry soil" },
+    { tier:"medium", word:"liminal",       pos:"adjective", definition:"relating to a transitional or threshold stage between two states" },
+    { tier:"medium", word:"ethereal",      pos:"adjective", definition:"extremely delicate and light, seeming too perfect for this world" },
+    { tier:"medium", word:"soliloquy",     pos:"noun",      definition:"an act of speaking one's thoughts aloud when alone or regardless of hearers" },
+    { tier:"medium", word:"quixotic",      pos:"adjective", definition:"exceedingly idealistic and unrealistic in pursuit of goals" },
+    { tier:"medium", word:"idiosyncrasy",  pos:"noun",      definition:"a mode of behaviour or thinking peculiar to a person" },
+    { tier:"medium", word:"ennui",         pos:"noun",      definition:"a feeling of listlessness from lack of excitement or occupation" },
+    { tier:"medium", word:"sycophant",     pos:"noun",      definition:"a person who acts obsequiously toward those in power to gain favour" },
+    { tier:"medium", word:"didactic",      pos:"adjective", definition:"intended to teach or instruct, particularly in a moral sense" },
+    { tier:"medium", word:"ineffable",     pos:"adjective", definition:"too great or extreme to be expressed in words" },
+    { tier:"medium", word:"subterfuge",    pos:"noun",      definition:"deceit used in order to achieve one's goal" },
+    { tier:"medium", word:"halcyon",       pos:"adjective", definition:"denoting a period of happiness, prosperity, and tranquility in the past" },
+    { tier:"medium", word:"equanimity",    pos:"noun",      definition:"mental calmness and composure, especially in difficult situations" },
+    { tier:"medium", word:"lassitude",     pos:"noun",      definition:"physical or mental weariness; lack of energy" },
+    { tier:"medium", word:"sonder",        pos:"noun",      definition:"the realisation that each passerby has a life as vivid and complex as your own" },
+    { tier:"medium", word:"limerence",     pos:"noun",      definition:"the state of being obsessively infatuated with another person" },
+    { tier:"medium", word:"chrysalism",    pos:"noun",      definition:"the tranquil feeling of being safely indoors during a storm" },
+    { tier:"medium", word:"kenopsia",      pos:"noun",      definition:"the eerie atmosphere of a place that is usually busy but now deserted" },
+    { tier:"medium", word:"apricity",      pos:"noun",      definition:"the warmth of the sun felt on a cold winter's day" },
+    { tier:"medium", word:"vellichor",     pos:"noun",      definition:"the strange wistfulness of used bookshops" },
+    { tier:"medium", word:"perspicuous",   pos:"adjective", definition:"clearly expressed and easily understood" },
+    { tier:"medium", word:"insouciant",    pos:"adjective", definition:"casually unconcerned or indifferent; carefree" },
+    { tier:"medium", word:"ephemeron",     pos:"noun",      definition:"a thing that exists or is used or enjoyed for only a short time" },
+    { tier:"medium", word:"sanguine",      pos:"adjective", definition:"optimistic, especially in a difficult situation" },
+    { tier:"medium", word:"torpor",        pos:"noun",      definition:"a state of physical or mental inactivity; lethargy" },
+    { tier:"medium", word:"vicissitude",   pos:"noun",      definition:"a change of circumstances or fortune, usually unwelcome" },
+    { tier:"medium", word:"propitious",    pos:"adjective", definition:"giving or indicating a good chance of success; favourable" },
+    { tier:"medium", word:"trepidation",   pos:"noun",      definition:"a feeling of fear or anxiety about something that may happen" },
+    { tier:"medium", word:"obstinate",    pos:"adjective", definition:"stubbornly refusing to change one's opinion or chosen course of action" },
+    { tier:"medium", word:"corpulent",     pos:"adjective", definition:"excessively overweight; fat" },
+    { tier:"medium", word:"diffident",     pos:"adjective", definition:"modest or shy due to a lack of self-confidence" },
+    { tier:"medium", word:"acrimony",      pos:"noun",      definition:"bitterness or ill feeling, especially in speech or manner" },
+    { tier:"medium", word:"ameliorate",    pos:"verb",      definition:"to make something bad or unsatisfactory better; improve" },
+    { tier:"medium", word:"anodyne",       pos:"adjective", definition:"not likely to offend or arouse strong feelings; innocuous" },
+    { tier:"medium", word:"byzantine",     pos:"adjective", definition:"excessively complicated and difficult to understand; devious" },
+    { tier:"medium", word:"chicanery",     pos:"noun",      definition:"the use of trickery to achieve one's purpose" },
+    { tier:"medium", word:"circumspect",   pos:"adjective", definition:"wary and unwilling to take risks; cautious" },
+    { tier:"medium", word:"conflate",      pos:"verb",      definition:"to combine two or more texts or ideas into one" },
+    { tier:"medium", word:"contrite",      pos:"adjective", definition:"feeling or expressing remorse or penitence; affected by guilt" },
+    { tier:"medium", word:"cupidity",      pos:"noun",      definition:"greed for money or possessions" },
+    { tier:"medium", word:"deference",     pos:"noun",      definition:"respectful submission or yielding to the judgement of another" },
+    { tier:"medium", word:"dissonance",    pos:"noun",      definition:"a lack of harmony or agreement between things" },
+    { tier:"medium", word:"ebullient",     pos:"adjective", definition:"cheerful and full of energy" },
+    { tier:"medium", word:"enervate",      pos:"verb",      definition:"to weaken someone so they feel drained of energy or vitality" },
+    { tier:"medium", word:"languid",      pos:"adjective", definition:"having a disinclination for physical exertion or effort; slow and relaxed" },
+    { tier:"medium", word:"equivocate",    pos:"verb",      definition:"to use ambiguous language so as to conceal the truth or avoid commitment" },
+    { tier:"medium", word:"fecund",        pos:"adjective", definition:"producing or capable of producing an abundance of offspring or ideas" },
+    { tier:"medium", word:"felicitous",    pos:"adjective", definition:"well-chosen or apt; pleasing and fortunate" },
+    { tier:"medium", word:"garrulous",     pos:"adjective", definition:"excessively talkative, especially on trivial matters" },
+    { tier:"medium", word:"hapless",       pos:"adjective", definition:"unfortunate; unlucky" },
+    { tier:"medium", word:"ignominious",   pos:"adjective", definition:"deserving or causing public disgrace; humiliating" },
+    { tier:"medium", word:"impetuous",     pos:"adjective", definition:"acting or done quickly and without thought or care" },
+    { tier:"medium", word:"indolent",      pos:"adjective", definition:"wanting to avoid activity or exertion; lazy" },
+    { tier:"medium", word:"intransigent",  pos:"adjective", definition:"refusing to change one's views or to agree; uncompromising" },
+    { tier:"medium", word:"inveterate",    pos:"adjective", definition:"having a particular habit or activity that is firmly established" },
+    { tier:"medium", word:"maudlin",      pos:"adjective", definition:"self-pityingly or tearfully sentimental, often as a result of drink" },
+    { tier:"medium", word:"mendacious",    pos:"adjective", definition:"not telling the truth; lying" },
+    { tier:"medium", word:"meretricious",  pos:"adjective", definition:"apparently attractive but having in reality no value or integrity" },
+    { tier:"medium", word:"obsequious",    pos:"adjective", definition:"obedient or attentive to an excessive or servile degree; fawning" },
+    { tier:"medium", word:"perfidious",    pos:"adjective", definition:"guilty of betrayal; deceitful and untrustworthy" },
+    { tier:"medium", word:"perspicacious", pos:"adjective", definition:"having a ready insight into things; shrewd" },
+    { tier:"medium", word:"phlegmatic",    pos:"adjective", definition:"having an unemotional, stolidly calm temperament" },
+    { tier:"medium", word:"platitude",     pos:"noun",      definition:"a remark or statement that is overused and therefore lacks meaning" },
+    { tier:"medium", word:"pliant",        pos:"adjective", definition:"easily influenced; yielding readily to others" },
+    { tier:"medium", word:"precipitate",   pos:"verb",      definition:"to cause an event to happen suddenly, unexpectedly, or prematurely" },
+    { tier:"medium", word:"prodigal",      pos:"adjective", definition:"spending money or using resources freely and recklessly; wastefully extravagant" },
+    { tier:"medium", word:"querulous",     pos:"adjective", definition:"complaining in a petulant or whining manner" },
+    { tier:"medium", word:"recalcitrant",  pos:"adjective", definition:"having an obstinately uncooperative attitude toward authority or discipline" },
+    { tier:"medium", word:"reticent",      pos:"adjective", definition:"not revealing one's thoughts or feelings readily; reserved" },
+    { tier:"medium", word:"sagacious",     pos:"adjective", definition:"having or showing keen mental discernment and good judgement; wise" },
+    { tier:"medium", word:"sanctimonious", pos:"adjective", definition:"making a show of being morally superior; self-righteous" },
+    { tier:"medium", word:"sycophancy",    pos:"noun",      definition:"excessive flattery towards someone in order to gain advantage" },
+    { tier:"medium", word:"tendentious",   pos:"adjective", definition:"promoting a particular cause or point of view; biased" },
+    { tier:"medium", word:"truculent",     pos:"adjective", definition:"eager or quick to argue or fight; aggressively defiant" },
+    { tier:"medium", word:"umbrage",       pos:"noun",      definition:"offence or annoyance; resentment" },
+    { tier:"medium", word:"unctuous",      pos:"adjective", definition:"excessively flattering in an ingratiating way; oily" },
+    { tier:"medium", word:"vapid",         pos:"adjective", definition:"offering nothing that is stimulating or challenging; dull" },
+    { tier:"medium", word:"vitriolic",     pos:"adjective", definition:"filled with bitter criticism or malice; scathing" },
+
+    // ── HARD (70 words) ───────────────────────────────────────────────────
+    { tier:"hard", word:"palimpsest",     pos:"noun",      definition:"something altered but still bearing visible traces of an earlier form" },
+    { tier:"hard", word:"verisimilitude", pos:"noun",      definition:"the appearance of being true or real" },
+    { tier:"hard", word:"solipsism",      pos:"noun",      definition:"the philosophical view that the self is all that can be known to exist" },
+    { tier:"hard", word:"sophistry",      pos:"noun",      definition:"the use of clever but misleading arguments" },
+    { tier:"hard", word:"pyrrhic",        pos:"adjective", definition:"won at such a great cost that it is equivalent to defeat" },
+    { tier:"hard", word:"fugacious",      pos:"adjective", definition:"tending to disappear; fleeting" },
+    { tier:"hard", word:"recondite",      pos:"adjective", definition:"not known by many people; obscure or abstruse" },
+    { tier:"hard", word:"susurrus",       pos:"noun",      definition:"a soft murmuring or whispering sound" },
+    { tier:"hard", word:"noctilucent",   pos:"adjective", definition:"denoting very high altitude clouds that glow faintly after sunset" },
+    { tier:"hard", word:"tenebrism",     pos:"noun",      definition:"a style of painting using dramatic contrasts between light and dark" },
+    { tier:"hard", word:"acumen",         pos:"noun",      definition:"the ability to make good judgements and take quick decisions" },
+    { tier:"hard", word:"adumbrate",      pos:"verb",      definition:"to report or represent in outline; to foreshadow or symbolise" },
+    { tier:"hard", word:"anamnesis",      pos:"noun",      definition:"recollection, especially of a supposed previous existence; reminiscence" },
+    { tier:"hard", word:"aporia",         pos:"noun",      definition:"an irresolvable internal contradiction or logical disjunction in a text or argument" },
+    { tier:"hard", word:"apposite",       pos:"adjective", definition:"apt in the circumstances or in relation to something; fitting" },
+    { tier:"hard", word:"asperity",       pos:"noun",      definition:"harshness of tone or manner; roughness" },
+    { tier:"hard", word:"atavism",        pos:"noun",      definition:"the reappearance of an ancestral characteristic after several generations of absence" },
+    { tier:"hard", word:"bathetic",       pos:"adjective", definition:"producing an effect of anticlimax; producing a sudden drop from the sublime to the trivial" },
+    { tier:"hard", word:"captious",       pos:"adjective", definition:"tending to find fault or raise objections on trivial grounds" },
+    { tier:"hard", word:"casuistry",      pos:"noun",      definition:"the process of resolving moral problems by applying theoretical rules to particular cases" },
+    { tier:"hard", word:"celerity",       pos:"noun",      definition:"swiftness of movement or action; speed" },
+    { tier:"hard", word:"chimerical",     pos:"adjective", definition:"existing only as a fantasy; wildly unrealistic" },
+    { tier:"hard", word:"clerisy",        pos:"noun",      definition:"a distinct class of learned or literary people; the intelligentsia" },
+    { tier:"hard", word:"contumacious",   pos:"adjective", definition:"stubbornly or wilfully disobedient to authority" },
+    { tier:"hard", word:"contumelious",   pos:"adjective", definition:"scornful and insulting; showing contemptuous rudeness" },
+    { tier:"hard", word:"crepuscular",    pos:"adjective", definition:"of, resembling, or relating to twilight; active at dusk or dawn" },
+    { tier:"hard", word:"defenestration", pos:"noun",      definition:"the action of throwing someone or something out of a window" },
+    { tier:"hard", word:"deracinate",     pos:"verb",      definition:"to tear something up by the roots; to uproot a person from their natural environment" },
+    { tier:"hard", word:"diaphanous",     pos:"adjective", definition:"so thin and delicate as to be transparent or translucent" },
+    { tier:"hard", word:"diegesis",       pos:"noun",      definition:"a narrative or plot, especially in a film, as opposed to the way it is told" },
+    { tier:"hard", word:"dysphoria",      pos:"noun",      definition:"a state of unease or generalised dissatisfaction with life; the opposite of euphoria" },
+    { tier:"hard", word:"eldritch",       pos:"adjective", definition:"weird and sinister or ghostly; eerie" },
+    { tier:"hard", word:"emollient",      pos:"adjective", definition:"having the quality of softening or soothing; intended to avoid controversy" },
+    { tier:"hard", word:"encomium",       pos:"noun",      definition:"a speech or piece of writing that praises someone or something highly" },
+    { tier:"hard", word:"exiguous",       pos:"adjective", definition:"very small in size or amount; scanty" },
+    { tier:"hard", word:"fatuous",        pos:"adjective", definition:"silly and pointless; self-complacently foolish" },
+    { tier:"hard", word:"febrile",        pos:"adjective", definition:"having or showing the symptoms of a fever; nervously anxious and overactive" },
+    { tier:"hard", word:"fulgent",        pos:"adjective", definition:"gleaming; radiant with a brilliant light" },
+    { tier:"hard", word:"gelid",          pos:"adjective", definition:"icy cold; very cold" },
+    { tier:"hard", word:"gnosis",         pos:"noun",      definition:"knowledge of spiritual mysteries; direct experiential knowledge of the divine" },
+    { tier:"hard", word:"haecceity",      pos:"noun",      definition:"the quality that makes a thing the particular thing that it is; thisness" },
+    { tier:"hard", word:"hebetude",       pos:"noun",      definition:"the state of being dull or lethargic; mental dullness" },
+    { tier:"hard", word:"hiraeth",        pos:"noun",      definition:"a longing for home or for the past, often with a sense of grief for what is lost" },
+    { tier:"hard", word:"hypnagogia",     pos:"noun",      definition:"the state of consciousness leading into sleep, often involving vivid hallucinations" },
+    { tier:"hard", word:"iconoclast",     pos:"noun",      definition:"a person who attacks cherished beliefs or institutions" },
+    { tier:"hard", word:"imbricate",      pos:"verb",      definition:"to arrange or lie so as to overlap like roof tiles" },
+    { tier:"hard", word:"impecunious",    pos:"adjective", definition:"having little or no money; penniless" },
+    { tier:"hard", word:"inchoate",       pos:"adjective", definition:"just begun and not fully formed or developed; rudimentary" },
+    { tier:"hard", word:"inimical",       pos:"adjective", definition:"tending to obstruct or harm; unfriendly; hostile" },
+    { tier:"hard", word:"insuperable",    pos:"adjective", definition:"impossible to overcome; insurmountable" },
+    { tier:"hard", word:"interpolate",    pos:"verb",      definition:"to insert words into a text, or new data into a series, so as to alter or corrupt" },
+    { tier:"hard", word:"interstice",     pos:"noun",      definition:"a small or narrow space or gap between things; a crack or crevice" },
+    { tier:"hard", word:"iridescent",     pos:"adjective", definition:"showing luminous colours that seem to change when seen from different angles" },
+    { tier:"hard", word:"jejune",         pos:"adjective", definition:"naive and simplistic; lacking nutritive value; dull" },
+    { tier:"hard", word:"lachrymose",     pos:"adjective", definition:"tearful or given to weeping; inducing tears" },
+    { tier:"hard", word:"limn",           pos:"verb",      definition:"to depict or describe in painting or words; to suffuse with light" },
+    { tier:"hard", word:"logorrhea",      pos:"noun",      definition:"a tendency to extreme loquacity; an excessive flow of words" },
+    { tier:"hard", word:"lucubrate",      pos:"verb",      definition:"to write or study by lamplight; to produce scholarly writing" },
+    { tier:"hard", word:"lugubrious",     pos:"adjective", definition:"looking or sounding sad and dismal; mournful" },
+    { tier:"hard", word:"machiavellian",  pos:"adjective", definition:"cunning, scheming, and unscrupulous, especially in politics" },
+    { tier:"hard", word:"manqué",         pos:"adjective", definition:"having failed to become what one might have been; unfulfilled" },
+    { tier:"hard", word:"meliorism",      pos:"noun",      definition:"the belief that the world can be made better by human effort" },
+    { tier:"hard", word:"metonymy",       pos:"noun",      definition:"a figure of speech where a thing is referred to by the name of something associated with it" },
+    { tier:"hard", word:"munificent",     pos:"adjective", definition:"larger or more generous than is usual or necessary; bountiful" },
+    { tier:"hard", word:"nadir",          pos:"noun",      definition:"the lowest point in the fortunes of a person or organisation" },
+    { tier:"hard", word:"numinous",       pos:"adjective", definition:"having a strong religious or spiritual quality; indicating or suggesting the presence of a divinity" },
+    { tier:"hard", word:"obfuscate",      pos:"verb",      definition:"to make unclear or confusing; to bewilder" },
+    { tier:"hard", word:"opprobrium",     pos:"noun",      definition:"harsh criticism or censure; the public disgrace arising from shameful conduct" },
+    { tier:"hard", word:"ossify",         pos:"verb",      definition:"to become rigid or fixed in one's attitudes or opinions; to turn to bone" },
+    { tier:"hard", word:"pareidolia",     pos:"noun",      definition:"the tendency to perceive a specific pattern or meaning in random stimuli" },
+  ];
+
+  // ── TIER ROTATION ──────────────────────────────────────────────────────
+  // Pattern repeats every 7 days: E M H M E M H
+  // No two consecutive days share a tier; hard days are never adjacent.
+  const TIER_PATTERN = ['easy','medium','hard','medium','easy','medium','hard'];
+
+  // Split word bank into per-tier arrays (order preserved = deterministic)
+  const TIER_POOLS = { easy: [], medium: [], hard: [] };
+  // Deduplicate by word before bucketing
+  const _seen = new Set();
+  for (const w of WORDS) {
+    if (!_seen.has(w.word)) { _seen.add(w.word); TIER_POOLS[w.tier].push(w); }
+  }
+
+  /* ════════════════════════════════════════════════════
+   * CONSTANTS
+   * ════════════════════════════════════════════════════ */
+  // Use Eastern time so word changes at midnight ET (handles EST/EDT automatically)
+  function getEasternDayIndex() {
+    const now = new Date();
+    const etDateStr = now.toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); // "YYYY-MM-DD"
+    const [y, mo, d] = etDateStr.split('-').map(Number);
+    return Math.floor(Date.UTC(y, mo - 1, d) / 86400000);
+  }
+  const DAY_INDEX    = getEasternDayIndex(); // ET midnight-aligned day index
+  const LAUNCH_DAY   = 20568;                          // Apr 25 2026 = Day 1
+  const GAME_DAY     = Math.max(1, DAY_INDEX - LAUNCH_DAY + 1); // 1-indexed display day
+  const DAYS_SINCE_LAUNCH = Math.max(0, DAY_INDEX - LAUNCH_DAY); // clamp to 0 before launch
+  const TIER_SLOT  = ((DAYS_SINCE_LAUNCH % TIER_PATTERN.length) + TIER_PATTERN.length) % TIER_PATTERN.length; // always positive
+  const TODAY_TIER = TIER_PATTERN[TIER_SLOT] || 'easy'; // fallback to easy
+  const POOL       = TIER_POOLS[TODAY_TIER];
+  const WORD_INDEX = DAYS_SINCE_LAUNCH % POOL.length;   // starts at word 0 on launch day
+  const DAILY      = POOL[WORD_INDEX];
+
+  const TODAY_KEY    = `dictle_played_${DAY_INDEX}`;
+  const STREAK_KEY   = `dictle_streak`;
+  const LAST_DAY_KEY = `dictle_last_day`;
+
+  /* ════════════════════════════════════════════════════
+   * DOM REFS
+   * ════════════════════════════════════════════════════ */
+  const $  = id => document.getElementById(id);
+  const wordDisplay      = $('word-display');
+  const wordPos          = $('word-pos');
+  const dayLabel         = $('day-label');
+  const userInput        = $('user-input');
+  const charCounter      = $('char-counter');
+  const btnSubmit        = $('btn-submit');
+  const errorBanner      = $('error-banner');
+  const resultsCard      = $('results-card');
+  const scoreNumber      = $('score-number');
+  const verdictText      = $('verdict-text');
+  const resultUserDef    = $('result-user-def');
+  const resultCorrectDef = $('result-correct-def');
+  const btnShare         = $('btn-share');
+  const streakCount      = $('streak-count');
+  const alreadyPlayed    = $('already-played');
+  const apScore          = $('ap-score');
+  const rpDay            = $('rp-day');
+  const rpWord           = $('rp-word');
+  const rpPos            = $('rp-pos');
+  const rpEmoji          = $('rp-emoji');
+
+  let lastScore = null;
+
+  /* ════════════════════════════════════════════════════
+   * INIT
+   * ════════════════════════════════════════════════════ */
+  function initUI() {
+    const tierLabel = { easy: "🟢 Easy", medium: "🟡 Medium", hard: "🔴 Hard" }[TODAY_TIER];
+    dayLabel.textContent    = `Day ${GAME_DAY}  ·  ${tierLabel}`;
+    wordDisplay.textContent = DAILY.word;
+    wordPos.textContent     = DAILY.pos;
+    rpDay.textContent       = `Dictle · Day ${GAME_DAY} · ${tierLabel}`;
+    rpWord.textContent      = DAILY.word;
+    rpPos.textContent       = DAILY.pos;
+    streakCount.textContent = parseInt(localStorage.getItem(STREAK_KEY) || '0', 10);
+
+    const saved = localStorage.getItem(TODAY_KEY);
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        showAlreadyPlayed(data.score, data.userDef);
+        const restoredHints = generateHints(data.userDef);
+        revealResults(data.score, data.userDef, false, data.feedback || '', restoredHints);
+      } catch {
+        localStorage.removeItem(TODAY_KEY); // corrupt data — reset
+        btnSubmit.disabled = false;
+      }
+    } else {
+      btnSubmit.disabled = false;
+    }
+  }
+
+  /* ════════════════════════════════════════════════════
+   * CHARACTER COUNTER
+   * ════════════════════════════════════════════════════ */
+  userInput.addEventListener('input', () => {
+    const len = userInput.value.length;
+    charCounter.textContent = `${len} / 150`;
+    charCounter.className = 'char-counter' +
+      (len >= 150 ? ' full' : len >= 120 ? ' warn' : '');
+  });
+
+  /* ════════════════════════════════════════════════════
+   * SCORING — fully local, no API needed
+   * Uses stemmed word-overlap + synonym expansion.
+   * ════════════════════════════════════════════════════ */
+
+  /* ════════════════════════════════════════════════════
+   * SCORING ENGINE v2
+   *
+   * Three-layer approach (all local, instant):
+   *   1. Token overlap — stemmed keyword matching
+   *   2. Synonym expansion — large hand-curated map so
+   *      "brief" matches "short", "happy" matches "joyful" etc.
+   *   3. Concept phrases — multi-word ideas from the correct
+   *      definition mapped to paraphrase alternatives, so
+   *      "lasting only a moment" scores like "very short time"
+   *
+   * Scoring formula:
+   *   coverage (how much of the correct def you captured) ×0.65
+   *   + jaccard (overlap ratio)                           ×0.35
+   *   Power-curved to spread scores across the 0-100 range.
+   * ════════════════════════════════════════════════════ */
+
+  const STOPWORDS = new Set([
+    'a','an','the','is','are','was','were','be','been','being',
+    'have','has','had','do','does','did','will','would','could','should',
+    'may','might','shall','can','of','in','on','at','to','for','with',
+    'by','from','as','or','and','but','not','it','its','that','this',
+    'which','who','what','when','where','how','very','used','often',
+    'also','more','than','so','if','about','into','through','after',
+    'over','between','out','up','down','off','then','there','their',
+    'one','two','each','other','such','all','any','some','no',
+  ]);
+
+  function stem(word) {
+    return word
+      .replace(/nesses?$/, '').replace(/ments?$/, '')
+      .replace(/ations?$/, 'ate').replace(/ings?$/, '')
+      .replace(/edly$/, '').replace(/ness$/, '')
+      .replace(/ful$/, '').replace(/ous$/, '')
+      .replace(/ive$/, '').replace(/ers?$/, '')
+      .replace(/ly$/, '').replace(/ed$/, '')
+      .replace(/es$/, '').replace(/s$/, '');
+  }
+
+  function tokenise(text) {
+    return text
+      .toLowerCase()
+      .replace(/[^a-z\s]/g, ' ')
+      .split(/\s+/)
+      .filter(w => w.length > 2 && !STOPWORDS.has(w))
+      .map(stem);
+  }
+
+  // ── Synonym map ────────────────────────────────────────────────────────
+  // Each entry: canonical stem → [accepted synonyms/paraphrases]
+  // ALL values are pre-stemmed or short enough to survive stemming intact.
+  const SYNONYM_MAP = {
+    // Time / duration
+    'short':       ['brief','fleet','tempor','transient','momentari','quick','ephem','fug','pass'],
+    'long':        ['extend','prolong','linger','persist','chronic','durabl'],
+    'time':        ['period','durat','moment','era','age','epoch','span','instant'],
+    'last':        ['endur','persist','continu','remain','surviv'],
+
+    // Emotion / feeling
+    'feel':        ['emot','sensat','sentiment','affect','mood','experienc'],
+    'sad':         ['unhappi','sorrow','melancholi','gloom','grief','mourn','lament','depress','woeful'],
+    'happi':       ['joyful','cheer','pleas','glad','content','elat','bliss','euphori'],
+    'long':        ['yearn','crav','ach','pinin','desir','nostalgi','wistful'],
+    'fear':        ['anxieti','dread','terror','fright','apprehens','trepid'],
+    'anger':       ['rage','furor','wrath','indign','irrit','bitter'],
+    'calm':        ['seren','tranquil','placid','equanim','composur','peac'],
+    'sad':         ['sorrow','grief','mourn','lament','melancholi','depress'],
+    'pain':        ['suffer','agoni','torment','anguish','distress','hurt'],
+    'pleas':       ['enjoi','delight','satisfact','gratif','content'],
+
+    // Cognition / thought
+    'understand':  ['comprehend','grasp','perceiv','know','realiz','recognis','apprehend'],
+    'think':       ['believ','consid','reflect','contempl','ponder','reason','ruminat'],
+    'know':        ['comprehend','familiar','acquaint','recognis','understood'],
+    'idea':        ['concept','notion','thought','principl','belief','opinion'],
+    'clear':       ['obvi','appar','evid','plain','manifest','explicit','perspicu'],
+    'confus':      ['obscur','vagu','unclear','ambiguous','muddl','opac'],
+    'wis':         ['sagaci','shrewd','discern','judici','insight','prudent'],
+
+    // Language / expression
+    'speak':       ['talk','utter','say','express','articul','vocaliz'],
+    'word':        ['speech','languag','express','discours','text','prose'],
+    'persuad':     ['convinc','coax','induс','influenc','sway','rhetoric'],
+    'prais':       ['commend','laud','extol','glorifi','encomium','compli'],
+    'insult':      ['offend','demean','degrad','disparag','belittl','scorn'],
+    'lie':         ['deceiv','falsifi','mendaci','dishonest','deceit','subterfug'],
+    'teach':       ['instruct','educat','didact','inform','enlighten','guid'],
+
+    // People / social
+    'person':      ['individu','human','someon','peopl','man','woman','self'],
+    'other':       ['anoth','fellow','neighbor','stranger','passerbi'],
+    'friend':      ['companion','associ','acquaint','allli','comrad'],
+    'leader':      ['ruler','chief','head','author','govern','command'],
+    'group':       ['communiti','societii','collectiv','assembl','crowd'],
+
+    // Physical world
+    'smell':       ['scent','odour','aroma','fragranc','waft'],
+    'sound':       ['nois','ton','acoust','auditori','murmur','whisper'],
+    'light':       ['bright','illumin','radiant','luminous','gleam','glow'],
+    'dark':        ['shadow','obscur','dim','murki','tenebr'],
+    'cold':        ['icy','frigid','gelid','frost','chill','freez'],
+    'rain':        ['precipit','downpour','shower','drizzl','storm','wet','damp','soil','earth','dry','ground'],
+    'soil':        ['earth','dirt','ground','land'],
+
+    // Abstract concepts
+    'order':       ['structur','system','arrang','organis','hierarch'],
+    'chaos':       ['disord','entrop','confus','turmoil','random'],
+    'truth':       ['realiti','fact','accur','honest','verit','sinceri','genuine'],
+    'power':       ['strength','forc','author','dominan','control','influen'],
+    'change':      ['alter','transform','shift','modifi','transit','evolv'],
+    'stop':        ['end','ceas','halt','terminat','finish','conclud'],
+    'start':       ['begin','initi','commenc','origin','creat'],
+    'good':        ['virtuous','moral','ethic','righteous','upright','honorabl'],
+    'bad':         ['evil','wicked','immoral','sinful','vicious','corrupt'],
+    'big':         ['larg','great','vast','enorm','immens','huge'],
+    'small':       ['litt','tini','minor','slight','minimal','scant'],
+    'fake':        ['false','artificial','imitat','counterfeit','sham','pretend'],
+    'real':        ['genuin','authentic','actual','true','verit'],
+    'hidden':      ['secret','conceal','covert','latent','implicit'],
+    'shown':       ['explicit','manifest','overt','display','reveal'],
+    'excess':      ['too much','overli','extrem','exagger','surplus','redundant','superflu'],
+    'lack':        ['absenc','defici','without','devoid','scarc','penuri'],
+
+    // States / conditions
+    'tir':         ['lassitud','weari','letharg','fatigue','torpor','exhaust','enervat'],
+    'lazi':        ['indol','sloth','inert','idle','listless'],
+    'activ':       ['energet','vigorous','livel','dynamic','spirited'],
+    'stuck':       ['immobil','static','stagnant','inert','fix'],
+    'free':        ['independ','autonomi','libert','unrestrain','sovereign'],
+    'restrict':    ['limit','constrain','confin','bound','imprison'],
+
+    // Moods / tones
+    'sarcasm':     ['ironi','cynic','mock','sardonic','snark','sneer'],
+    'serious':     ['solemn','grave','earnest','sincere','sober'],
+    'playful':     ['whimsic','fanciful','lightheart','jovial','humorous'],
+    'proud':       ['arrogant','vain','hubris','boastful','conceited','haughti'],
+    'humble':      ['modest','meek','deferenti','unassum'],
+    'obedi':       ['submiss','compli','defer','yield','acquiesc'],
+    'rebel':       ['defiant','disobedi','recalcitrant','refractory','unruli'],
+
+    // Intellectual / moral qualities
+    'smart':       ['intellig','clever','astute','shrewd','sagaci','perspicaci','bright'],
+    'foolish':     ['silly','stupid','naive','inane','absurd','fatuous','vacuous'],
+    'honest':      ['candid','frank','sincere','truthful','straightforward','forthright'],
+    'deceit':      ['cheat','fraud','trick','manipul','subterfug','guil','duplicit'],
+    'greedi':      ['avar','cupid','covet','rapaci','acquisit'],
+    'generos':     ['beneficent','munific','benevolent','philanthropi','giving'],
+    'cruel':       ['harsh','brutal','merciless','ruthless','callous','pitiless'],
+    'kind':        ['compassion','gentl','tender','caring','sympathet','warm'],
+  };
+
+  // ── Concept phrase map ────────────────────────────────────────────────
+  // Multi-word ideas that share meaning across paraphrases.
+  // If ANY phrase in a group appears in either the user or correct text,
+  // the whole group is "present" for scoring purposes.
+  const CONCEPT_PHRASES = [
+    // Time
+    ['very short time','brief period','short duration','fleeting moment','momentary','ephemeral','transient','passing quickly','doesn\'t last'],
+    ['long time','extended period','prolonged','persists','endures','lasting','ongoing'],
+
+    // Emotion
+    ['strong emotion','intense feeling','deep feeling','profound emotion','overwhelming feeling'],
+    ['longing for the past','nostalgia','sentimental','wishing for what was','missing the past'],
+    ['feeling of sadness','melancholy','sorrow','grief','deep sadness'],
+    ['happiness','joy','elation','contentment','bliss','delight'],
+    ['anxiety','worry','fear','dread','apprehension','unease'],
+    ['calm','composure','serenity','tranquility','peace of mind','equanimity'],
+
+    // Thought / knowledge
+    ['self-evident','obviously true','taken for granted','accepted as true','undeniably true'],
+    ['understand another','share feelings','feel what others feel','put yourself in their shoes'],
+    ['misleading argument','false reasoning','deceptive logic','flawed reasoning','specious'],
+    ['idealistic','unrealistic','impractical idealism','chasing windmills'],
+
+    // Language
+    ['speaking alone','talking to oneself','monologue','internal speech'],
+    ['few words','brief speech','concise','says little','economical with words'],
+    ['persuasive language','rhetoric','use of words to persuade','oratory'],
+    ['teaching through story','moral lesson','instructive','meant to teach'],
+
+    // Social
+    ['excessive pride','too much confidence','arrogance','overconfidence leads to downfall'],
+    ['pleasure from misfortune','enjoying others\' pain','delight in failure of others'],
+    ['flattery for gain','obsequious','fawning','telling people what they want to hear'],
+
+    // Physical
+    ['earthy smell after rain','smell of rain','rain on dry earth','rain on soil','wet earth smell'],
+    ['smooth musical sound','pleasing to the ear','melodious','sweet sound','flowing sound'],
+    ['warmth of sun','sunshine warmth','sun\'s heat','solar warmth'],
+    ['quiet sound','soft murmur','gentle whisper','hushed noise','barely audible'],
+
+    // Abstract
+    ['gradual disorder','increasing chaos','tendency toward chaos','decline into disorder'],
+    ['transitional state','in between','threshold','neither one nor other','liminal'],
+    ['appears real','seems true','looks authentic','has appearance of truth'],
+    ['cannot be expressed','beyond words','inexpressible','defies description','indescribable'],
+    ['deception to achieve','using deceit','trickery','dishonest means','underhanded method'],
+    ['short-lived','doesn\'t last long','temporary existence','brief life','passes quickly'],
+
+    // States
+    ['lack of interest','no enthusiasm','indifference','don\'t care','not engaged'],
+    ['mental weariness','physical tiredness','exhaustion','drained of energy','lack of energy'],
+    ['experienced by proxy','through someone else','secondhand experience','not directly'],
+    ['self is only reality','only self exists','nothing outside the mind'],
+    ['wistfulness of bookshops','old books atmosphere','used bookshop feeling'],
+    ['indoors during storm','cosy inside storm','safe inside while storm rages'],
+    ['eerie empty place','usually busy now empty','abandoned familiar place'],
+    ['obsessive infatuation','can\'t stop thinking about someone','fixated on a person'],
+    ['realise others have lives','others have inner worlds','everyone has their own story'],
+  ];
+
+  function expandWithSynonyms(tokens) {
+    const expanded = new Set(tokens);
+    for (const token of tokens) {
+      for (const [canonical, synonyms] of Object.entries(SYNONYM_MAP)) {
+        const canonStem = stem(canonical);
+        if (token === canonStem || synonyms.some(s => stem(s) === token || token.startsWith(stem(s).slice(0,5)))) {
+          expanded.add(canonStem);
+          synonyms.forEach(s => expanded.add(stem(s)));
+        }
+      }
+    }
+    return expanded;
+  }
+
+  function conceptPhraseBonus(userText, correctText) {
+    const uLower = userText.toLowerCase();
+    const cLower = correctText.toLowerCase();
+    let bonus = 0;
+    for (const group of CONCEPT_PHRASES) {
+      const inCorrect = group.some(phrase => cLower.includes(phrase));
+      if (!inCorrect) continue; // this concept isn't in the correct definition
+      const inUser = group.some(phrase => uLower.includes(phrase));
+      if (inUser) bonus += 12; // player expressed this concept — reward it
+    }
+    return Math.min(bonus, 30); // cap concept bonus at 30 points
+  }
+
+  function jaccardScore(setA, setB) {
+    if (setA.size === 0 && setB.size === 0) return 1;
+    const intersection = [...setA].filter(x => setB.has(x)).length;
+    const union = new Set([...setA, ...setB]).size;
+    return intersection / union;
+  }
+
+  function coverageScore(userSet, correctSet) {
+    if (correctSet.size === 0) return 1;
+    const covered = [...correctSet].filter(x => userSet.has(x)).length;
+    return covered / correctSet.size;
+  }
+
+  // ── Hint generation ───────────────────────────────────────────────────
+  // Returns array of { word, hit } for display as chips
+  function generateHints(userText) {
+    const correctTokens = tokenise(DAILY.definition).filter((t, i, arr) => arr.indexOf(t) === i);
+    const userExpanded  = expandWithSynonyms(new Set(tokenise(userText)));
+    const uLower        = userText.toLowerCase();
+
+    return correctTokens.map(token => {
+      // Direct token match
+      let hit = userExpanded.has(token);
+      // Concept phrase match
+      if (!hit) {
+        for (const group of CONCEPT_PHRASES) {
+          const inGroup = group.some(phrase => stem(phrase).includes(token) || token.includes(stem(phrase).slice(0,4)));
+          const inUser  = group.some(phrase => uLower.includes(phrase));
+          if (inGroup && inUser) { hit = true; break; }
+        }
+      }
+      return { word: token, hit };
+    });
+  }
+
+  function computeScore(userText) {
+    const trimmed = userText.trim();
+    if (trimmed.length === 0) return { score: 0, feedback: 'No definition entered.', hints: [] };
+
+    const wordCount     = trimmed.split(/\s+/).filter(Boolean).length;
+    const userTokens    = new Set(tokenise(trimmed));
+    const correctTokens = new Set(tokenise(DAILY.definition));
+    const userExpanded  = expandWithSynonyms(userTokens);
+    const corrExpanded  = expandWithSynonyms(correctTokens);
+
+    const jac  = jaccardScore(userExpanded, corrExpanded);
+    const cov  = coverageScore(userExpanded, corrExpanded);
+
+    // Base score: coverage-weighted, power-curved to spread the range
+    let score = Math.round(Math.pow(jac * 0.35 + cov * 0.65, 0.42) * 100);
+
+    // Concept phrase bonus — rewards paraphrases token matching misses
+    score += conceptPhraseBonus(trimmed, DAILY.definition);
+    score = Math.max(0, Math.min(100, score));
+
+    // Short answer caps — only reward if genuinely matching
+    if (wordCount === 1) {
+      score = (jac < 0.05 && cov < 0.05) ? 0 : Math.min(score, 30);
+    } else if (wordCount === 2) {
+      score = (jac < 0.05 && cov < 0.05) ? 0 : Math.min(score, 45);
+    } else if (wordCount <= 4) {
+      score = Math.min(score, 72);
+    }
+
+    // Penalise using the target word itself as the whole definition
+    if (trimmed.toLowerCase().includes(DAILY.word.toLowerCase()) && wordCount <= 3) {
+      score = Math.min(score, 15);
+    }
+
+    let feedback;
+    if      (score >= 88) feedback = 'Excellent — you nailed it.';
+    else if (score >= 70) feedback = 'Great — got the core idea.';
+    else if (score >= 50) feedback = 'Good effort — close to the mark.';
+    else if (score >= 30) feedback = 'Partially there — check the correct definition.';
+    else if (score >   0) feedback = 'Not quite — see the correct definition below.';
+    else                  feedback = 'Way off — check the correct definition below.';
+
+    const hints = generateHints(trimmed);
+    return { score, feedback, hints };
+  }
+
+  /* ════════════════════════════════════════════════════
+   * HELPERS
+   * ════════════════════════════════════════════════════ */
+  function getVerdict(score, feedback) {
+    if (feedback) return feedback;
+    if (score >= 88) return "✦ Nailed it";
+    if (score >= 70) return "⬆ Great definition";
+    if (score >= 50) return "◈ Close enough";
+    if (score >= 30) return "▽ Partially correct";
+    return "✕ Off the mark";
+  }
+
+  function scoreColor(score) {
+    if (score >= 65) return 'var(--good)';
+    if (score >= 40) return 'var(--mid)';
+    return 'var(--bad)';
+  }
+
+  function scoreToEmoji(score) {
+    if (score >= 90) return '🤯';
+    if (score >= 70) return '😌';
+    if (score >= 50) return '😅';
+    return '💀';
+  }
+
+  /* ════════════════════════════════════════════════════
+   * REVEAL RESULTS
+   * ════════════════════════════════════════════════════ */
+  function revealResults(score, userDef, animate = true, feedback = '', hints = []) {
+    resultUserDef.textContent    = userDef;
+    resultCorrectDef.textContent = DAILY.definition;
+    verdictText.textContent      = getVerdict(score, feedback);
+    rpEmoji.textContent          = scoreToEmoji(score);
+    resultsCard.style.display    = 'block';
+    lastScore = score;
+
+    // Render hint chips
+    const chipsEl = document.getElementById('hint-chips');
+    if (chipsEl) {
+      if (hints && hints.length > 0) {
+        chipsEl.innerHTML = hints.map(h => `
+          <div class="hint-chip ${h.hit ? 'hit' : 'miss'}">
+            ${h.hit ? '✓' : '✗'} ${h.word}
+          </div>`).join('');
+      } else {
+        chipsEl.innerHTML = `<span style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted)">No keyword data.</span>`;
+      }
+    }
+
+    if (animate) {
+      scoreNumber.textContent = 0;
+      scoreNumber.style.color = '#fff';
+      let current = 0;
+      const step = Math.max(1, Math.ceil(score / 50));
+      const timer = setInterval(() => {
+        current = Math.min(current + step, score);
+        scoreNumber.textContent = current;
+        // Color transitions red → yellow → green as score climbs
+        if      (current >= 65) scoreNumber.style.color = 'var(--good)';
+        else if (current >= 40) scoreNumber.style.color = 'var(--mid)';
+        else                    scoreNumber.style.color = 'var(--bad)';
+        if (current >= score) { clearInterval(timer); renderSparkline(); }
+      }, 20);
+    } else {
+      scoreNumber.textContent = score;
+      if      (score >= 65) scoreNumber.style.color = 'var(--good)';
+      else if (score >= 40) scoreNumber.style.color = 'var(--mid)';
+      else                  scoreNumber.style.color = 'var(--bad)';
+    }
+  }
+
+  function showAlreadyPlayed(score, userDef) {
+    alreadyPlayed.style.display = 'block';
+    apScore.textContent         = `${score}% match`;
+    userInput.value             = userDef;
+    userInput.disabled          = true;
+    btnSubmit.disabled          = true;
+  }
+
+  function showError(msg) {
+    errorBanner.textContent    = `⚠ ${msg}`;
+    errorBanner.style.display  = 'block';
+    btnSubmit.textContent      = 'Try again';
+    btnSubmit.disabled         = false;
+    userInput.disabled         = false;
+  }
+
+  function updateStreak() {
+    const lastDay = parseInt(localStorage.getItem(LAST_DAY_KEY) || '0', 10);
+    let streak    = parseInt(localStorage.getItem(STREAK_KEY)   || '0', 10);
+
+    if      (lastDay === DAY_INDEX - 1) streak += 1;
+    else if (lastDay !== DAY_INDEX)     streak  = 1;
+
+    localStorage.setItem(STREAK_KEY,    streak);
+    localStorage.setItem(LAST_DAY_KEY,  DAY_INDEX);
+    streakCount.textContent = streak;
+  }
+
+  /* ════════════════════════════════════════════════════
+   * TRY-AGAIN STATE
+   * ════════════════════════════════════════════════════ */
+  const MAX_ATTEMPTS = 2;
+  let attemptCount   = 0;   // how many times submitted today
+  let pendingScore   = null; // score waiting to be locked in
+  let pendingResult  = null; // { score, userDef, feedback, hints }
+
+  const scoreReveal       = document.getElementById('score-reveal');
+  const revealScoreEl     = document.getElementById('reveal-score');
+  const revealWordEl      = document.getElementById('reveal-word');
+  const revealActionsEl   = document.getElementById('reveal-actions');
+  const revealAttemptEl   = document.getElementById('reveal-attempt-counter');
+  const revealWarnEl      = document.getElementById('reveal-warn');
+  const btnLock           = document.getElementById('btn-lock');
+  const btnRetry          = document.getElementById('btn-retry');
+
+  /* ── Show the full-screen score reveal ── */
+  function showScoreReveal(score, isLastAttempt) {
+    revealWordEl.textContent  = DAILY.word;
+    revealScoreEl.textContent = 0;
+    revealScoreEl.style.color = '#fff';
+    revealActionsEl.classList.remove('visible');
+    revealAttemptEl.textContent = attemptCount > 1
+      ? `Attempt ${attemptCount} of ${MAX_ATTEMPTS}`
+      : '';
+
+    // Update/hide retry button
+    if (isLastAttempt) {
+      btnRetry.style.display = 'none';
+      revealWarnEl.textContent = '';
+    } else {
+      btnRetry.style.display = '';
+      revealWarnEl.textContent = attemptCount === 1
+        ? 'Tip: sharing on attempt 1 is most impressive 👀'
+        : 'Last attempt — this is your final score';
+    }
+
+    scoreReveal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    // Dramatic count-up: starts fast, decelerates into the final number
+    // Uses an ease-out curve so the last few digits feel tense
+    const duration = 2200; // ms total
+    const startTime = performance.now();
+
+    function easeOut(t) {
+      return 1 - Math.pow(1 - t, 3); // cubic ease-out
+    }
+
+    function tick(now) {
+      const elapsed  = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased    = easeOut(progress);
+      const display  = Math.round(eased * score);
+
+      revealScoreEl.textContent = display;
+      if      (display >= 65) revealScoreEl.style.color = '#6ee7a8';
+      else if (display >= 40) revealScoreEl.style.color = '#fcd34d';
+      else                    revealScoreEl.style.color = '#fca5a5';
+
+      if (progress < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        revealScoreEl.textContent = score;
+        // Buttons appear after a comfortable pause
+        setTimeout(() => revealActionsEl.classList.add('visible'), 500);
+      }
+    }
+
+    requestAnimationFrame(tick);
+  }
+
+  /* ── Lock it in → dismiss overlay, show full results ── */
+  function lockItIn() {
+    scoreReveal.classList.remove('active');
+    document.body.style.overflow = '';
+
+    // Keep the best score across all attempts
+    const prev = (() => { try { return JSON.parse(localStorage.getItem(TODAY_KEY) || '{}'); } catch { return {}; } })();
+    const bestResult = (prev.score !== undefined && prev.score > pendingResult.score)
+      ? { ...prev, attempts: attemptCount }
+      : { ...pendingResult, attempts: attemptCount };
+
+    localStorage.setItem(TODAY_KEY, JSON.stringify(bestResult));
+    saveHistory(bestResult.score);
+    updateStreak();
+
+    revealResults(bestResult.score, bestResult.userDef, false, bestResult.feedback, bestResult.hints || []);
+    showAlreadyPlayed(bestResult.score, bestResult.userDef);
+
+    setTimeout(() => resultsCard.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  }
+
+  /* ── Try again → dismiss overlay, reset input ── */
+  function tryAgain() {
+    scoreReveal.classList.remove('active');
+    document.body.style.overflow = '';
+
+    // Reset input card
+    userInput.value             = '';
+    userInput.disabled          = false;
+    userInput.style.borderColor = '';
+    btnSubmit.disabled          = false;
+    btnSubmit.textContent       = 'Submit';
+    charCounter.textContent     = '0 / 150';
+    errorBanner.style.display   = 'none';
+
+    userInput.focus();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  btnLock.addEventListener('click', lockItIn);
+  btnRetry.addEventListener('click', tryAgain);
+
+  // Dismiss on back button / escape
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && scoreReveal.classList.contains('active')) lockItIn();
+  });
+
+  /* ════════════════════════════════════════════════════
+   * SUBMIT
+   * ════════════════════════════════════════════════════ */
+  btnSubmit.addEventListener('click', () => {
+    const userDef = userInput.value.trim();
+
+    if (!userDef) {
+      userInput.style.borderColor = 'var(--bad)';
+      setTimeout(() => { userInput.style.borderColor = ''; }, 800);
+      return;
+    }
+
+    userInput.disabled    = true;
+    btnSubmit.disabled    = true;
+    btnSubmit.textContent = 'Scoring…';
+    errorBanner.style.display = 'none';
+
+    try {
+      const { score, feedback, hints } = computeScore(userDef);
+      attemptCount++;
+      pendingResult = { score, userDef, feedback, hints };
+      pendingScore  = score;
+
+      const isLastAttempt = attemptCount >= MAX_ATTEMPTS;
+      showScoreReveal(score, isLastAttempt);
+
+    } catch (err) {
+      console.error(err);
+      showError('Scoring failed — please refresh and try again.');
+    }
+  });
+
+  /* ════════════════════════════════════════════════════
+   * COPY RESULT — three-tier fallback
+   * ════════════════════════════════════════════════════ */
+  btnShare.addEventListener('click', () => {
+    const score = lastScore ?? 0;
+    const streak = parseInt(localStorage.getItem(STREAK_KEY) || '0', 10);
+    const streakLine = streak >= 2 ? `\n🔥 ${streak} day streak` : '';
+    const saved = (() => { try { return JSON.parse(localStorage.getItem(TODAY_KEY) || '{}'); } catch { return {}; } })();
+    const attempts = saved.attempts || 1;
+    const attemptLine = attempts > 1 ? ` · ${attempts} attempts` : '';
+    const text =
+      `Dictle #${GAME_DAY} ${scoreToEmoji(score)}\n` +
+      `${DAILY.word} · ${score}/100${attemptLine}` +
+      streakLine + '\n' +
+      `Can you beat me? → https://playdictle.vercel.app`;
+
+    function onCopied() {
+      btnShare.textContent = '✓ Copied!';
+      btnShare.classList.add('copied');
+      setTimeout(() => {
+        btnShare.innerHTML = '<span>📋</span> Copy result';
+        btnShare.classList.remove('copied');
+      }, 2000);
+    }
+
+    // Tier 1: modern Clipboard API (requires HTTPS + user gesture — works on Vercel)
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).then(onCopied).catch(legacyCopy);
+      return;
+    }
+    legacyCopy();
+
+    // Tier 2: execCommand — works in HTTP / older browsers
+    function legacyCopy() {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      try {
+        if (document.execCommand('copy')) { onCopied(); }
+        else { showShareModal(text); }
+      } catch { showShareModal(text); }
+      document.body.removeChild(ta);
+    }
+  });
+
+  // Tier 3: modal — user copies manually
+  function showShareModal(text) {
+    const overlay = document.createElement('div');
+    overlay.style.cssText =
+      'position:fixed;inset:0;background:rgba(0,0,0,0.75);' +
+      'display:flex;align-items:center;justify-content:center;z-index:999;padding:24px';
+    overlay.innerHTML = `
+      <div style="background:var(--surface);border:1px solid var(--border);
+        border-radius:12px;padding:24px;max-width:400px;width:100%">
+        <p style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--muted);
+          margin-bottom:12px;letter-spacing:0.1em">COPY YOUR RESULT</p>
+        <textarea readonly style="width:100%;background:var(--bg);color:var(--text);
+          border:1px solid var(--border);border-radius:8px;padding:12px;
+          font-family:'DM Mono',monospace;font-size:0.82rem;line-height:1.6;
+          resize:none;height:120px;outline:none">${text}</textarea>
+        <button onclick="this.closest('[style]').remove()" style="
+          margin-top:12px;width:100%;padding:10px;background:var(--indigo);
+          color:#fff;border:none;border-radius:8px;font-family:'DM Serif Display',Georgia,serif;
+          font-weight:800;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer">Close</button>
+      </div>`;
+    overlay.querySelector('textarea').addEventListener('focus', e => e.target.select());
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
+    setTimeout(() => overlay.querySelector('textarea').select(), 50);
+  }
+
+  /* ── Theme toggle ── */
+  (function() {
+    const saved = localStorage.getItem('dictle_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', saved);
+    $('theme-toggle').addEventListener('click', () => {
+      const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('dictle_theme', next);
+    });
+  })();
+
+  /* ── Cmd/Ctrl+Enter to submit ── */
+  userInput.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && !btnSubmit.disabled) {
+      e.preventDefault();
+      btnSubmit.click();
+    }
+  });
+
+  /* ════════════════════════════════════════════════════
+   * HISTORY — store per-day scores for sparkline & stats
+   * ════════════════════════════════════════════════════ */
+  const HISTORY_KEY = 'dictle_history'; // { [dayIndex]: score }
+
+  function saveHistory(score) {
+    let hist = {};
+    try { hist = JSON.parse(localStorage.getItem(HISTORY_KEY) || '{}'); } catch {}
+    hist[DAY_INDEX] = score;
+    // keep only last 90 days
+    const keys = Object.keys(hist).map(Number).sort((a,b) => a-b);
+    if (keys.length > 90) keys.slice(0, keys.length - 90).forEach(k => delete hist[k]);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(hist));
+  }
+
+  function getHistory() {
+    try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '{}'); } catch { return {}; }
+  }
+
+  /* ── Sparkline (last 7 days) ── */
+  function renderSparkline() {
+    const wrap = $('sparkline');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    const hist = getHistory();
+    for (let i = 6; i >= 0; i--) {
+      const dayIdx = DAY_INDEX - i;
+      const score  = hist[dayIdx];
+      const bar    = document.createElement('div');
+      bar.className = 'spark-bar';
+      if (i === 0) bar.classList.add('today');
+      if (score !== undefined) {
+        bar.style.height = Math.max(4, Math.round((score / 100) * 22)) + 'px';
+        if      (score >= 65) bar.classList.add('good');
+        else if (score >= 40) bar.classList.add('mid');
+        else                  bar.classList.add('bad');
+        bar.title = `Day ${GAME_DAY - i}: ${score}/100`;
+      } else {
+        bar.style.height = '3px';
+        bar.style.opacity = '0.3';
+        bar.title = 'Not played';
+      }
+      wrap.appendChild(bar);
+    }
+    wrap.addEventListener('click', openStats);
+  }
+
+  /* ════════════════════════════════════════════════════
+   * STATS MODAL
+   * ════════════════════════════════════════════════════ */
+  function openStats() {
+    const hist    = getHistory();
+    const scores  = Object.values(hist).map(Number);
+    const streak  = parseInt(localStorage.getItem(STREAK_KEY) || '0', 10);
+    const avg     = scores.length ? Math.round(scores.reduce((a,b) => a+b, 0) / scores.length) : 0;
+    const best    = scores.length ? Math.max(...scores) : 0;
+    const played  = scores.length;
+
+    // Score distribution buckets: 0-19, 20-39, 40-59, 60-79, 80-100
+    const buckets = [0,0,0,0,0];
+    const labels  = ['0–19','20–39','40–59','60–79','80–100'];
+    scores.forEach(s => {
+      if      (s < 20)  buckets[0]++;
+      else if (s < 40)  buckets[1]++;
+      else if (s < 60)  buckets[2]++;
+      else if (s < 80)  buckets[3]++;
+      else              buckets[4]++;
+    });
+    const maxBucket = Math.max(...buckets, 1);
+
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal-box">
+        <div class="modal-header">
+          <div class="modal-title">Your stats</div>
+          <button class="modal-close" id="modal-close-btn">✕</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-cell"><div class="stat-num">${played}</div><div class="stat-lbl">Played</div></div>
+          <div class="stat-cell"><div class="stat-num">${streak}</div><div class="stat-lbl">Streak</div></div>
+          <div class="stat-cell"><div class="stat-num">${avg}</div><div class="stat-lbl">Avg</div></div>
+          <div class="stat-cell"><div class="stat-num">${best}</div><div class="stat-lbl">Best</div></div>
+        </div>
+        <div class="hist-label">Score distribution</div>
+        <div class="hist-chart">
+          ${labels.map((lbl, i) => `
+            <div class="hist-row">
+              <span class="hist-range">${lbl}</span>
+              <div class="hist-bar-bg">
+                <div class="hist-bar-fill" style="width:${Math.round((buckets[i]/maxBucket)*100)}%"></div>
+              </div>
+              <span class="hist-count">${buckets[i]}</span>
+            </div>`).join('')}
+        </div>
+      </div>`;
+
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    overlay.querySelector('#modal-close-btn').addEventListener('click', () => overlay.remove());
+    document.body.appendChild(overlay);
+  }
+
+  $('stats-btn').addEventListener('click', openStats);
+
+  /* ── Countdown to midnight ET ── */
+  function updateCountdown() {
+    const now  = new Date();
+    // Compute next midnight in Eastern time (handles EST/EDT automatically)
+    const etNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    const midnight = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    midnight.setHours(24, 0, 0, 0); // next midnight in ET wall-clock
+    const diff = midnight - etNow;
+    const h = String(Math.floor(diff / 3600000)).padStart(2,'0');
+    const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2,'0');
+    const s = String(Math.floor((diff % 60000) / 1000)).padStart(2,'0');
+    const el = document.getElementById('countdown');
+    if (diff <= 0) {
+      if (el) el.textContent = '00:00:00';
+      window.location.reload();
+      return;
+    }
+    if (el) el.textContent = `${h}:${m}:${s}`;
+  }
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+
+  initUI();
+  renderSparkline();
+</script>
+</body>
+</html>
