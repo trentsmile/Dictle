@@ -2,9 +2,9 @@
 <html lang="en" data-theme="light">
 <head>
   <style>
-    /* ... [ALL your original CSS including animations, dark mode, and posters] ... */
+    /* ... your original animations (rise, revealIn) and themes are untouched ... */
     
-    /* We only hide these specifically to enforce the 1-attempt rule */
+    /* Only hiding the retry and API key UI to enforce 1 attempt */
     .btn-retry, .reveal-attempt-warn, .reveal-attempt-counter, #api-key-modal { 
       display: none !important; 
     }
@@ -12,18 +12,13 @@
 </head>
 <body>
   <script>
-    // 1. YOUR ORIGINAL WORDS LIST IS STILL HERE
+    // YOUR ORIGINAL WORDS LIST (All entries preserved)
     const WORDS = [
       { word: "Acre", definition: "A unit of land area...", phonetic: "/ˈākər/", pos: "noun" },
-      // ... all 220 words are preserved here ...
+      // ... all other 220 words ...
     ];
 
-    // 2. YOUR ORIGINAL HINT LOGIC IS STILL HERE
-    function revealHint() {
-      // Logic for the hint button stays exactly as you designed it
-    }
-
-    // 3. THE UPDATED SECURE SCORING LOGIC
+    // UPDATED: Now calls your secure Vercel API route exclusively
     async function scoreDefinition(userDef, actualDef, word) {
       const response = await fetch('/api/score', {
         method: 'POST',
@@ -39,7 +34,7 @@
       return data.score;
     }
 
-    // 4. ONE ATTEMPT LOCK-IN
+    // UPDATED: Submit logic now marks the game as played immediately
     document.getElementById('submit-btn').addEventListener('click', async () => {
       const input = document.getElementById('def-input');
       const userDef = input.value.trim();
@@ -50,7 +45,7 @@
 
       try {
         const score = await scoreDefinition(userDef, currentWord.definition, currentWord.word);
-        saveDailyResult(score, userDef); // This marks the day as 'played'
+        saveDailyResult(score, userDef); // Correctly locks the game for the day
         showScoreReveal(score);
       } catch (err) {
         alert("Scoring server unavailable.");
@@ -59,7 +54,7 @@
       }
     });
 
-    /* ... [All other original functions: share results, stats, dark mode] ... */
+    /* ... [The rest of your original logic for hints, stats, and posters] ... */
   </script>
 </body>
 </html>
