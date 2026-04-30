@@ -1,0 +1,2028 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dictle – Daily Definition Game</title>
+  <meta name="description" content="Guess the word definition. One word. One attempt. Every day." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://playdictle.vercel.app/" />
+  <meta property="og:title" content="Dictle – Daily Definition Game" />
+  <meta property="og:description" content="One word. One attempt. Every day." />
+  <meta property="og:image" content="https://playdictle.vercel.app/og.png?v=2" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Dictle – Daily Definition Game" />
+  <meta name="twitter:description" content="One word. One attempt. Every day." />
+  <link rel="canonical" href="https://playdictle.vercel.app/" />
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"WebApplication","name":"Dictle","url":"https://playdictle.vercel.app/","description":"A daily word definition game. One word, one attempt, every day.","applicationCategory":"Game","operatingSystem":"All"}
+  </script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#x1F4D6;</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;1,8..60,300;1,8..60,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:           #EDECEA;
+      --text:         #141414;
+      --muted:        #A8A5A0;
+      --border:       #D5D2CD;
+      --border-strong:#A8A5A0;
+      --good:         #3A7A35;
+      --mid:          #8A7A25;
+      --bad:          #A04030;
+      --font-display: "Cormorant Garamond", Georgia, serif;
+      --font-serif:   "Source Serif 4", Georgia, serif;
+      --font-sans:    "Helvetica Neue", Arial, sans-serif;
+    }
+
+    [data-theme="dark"] {
+      --bg:           #1A1917;
+      --text:         #E8E5E0;
+      --muted:        #6B6864;
+      --border:       #2E2C2A;
+      --border-strong:#4A4845;
+      --good:         #5AAE55;
+      --mid:          #B8A840;
+      --bad:          #C05545;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      transition: background .25s ease, color .25s ease;
+    }
+
+    /* HEADER */
+    header {
+      width: 100%;
+      max-width: 900px;
+      padding: 32px 48px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      font-family: var(--font-display);
+      font-size: 1.75rem;
+      font-weight: 500;
+      color: var(--text);
+      letter-spacing: 0.01em;
+    }
+    .theme-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+    .theme-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+    .theme-switch-track {
+      position: absolute;
+      inset: 0;
+      background: var(--border);
+      border-radius: 100px;
+      transition: background .25s ease;
+      cursor: pointer;
+    }
+    .theme-switch-track::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 18px;
+      height: 18px;
+      background: var(--text);
+      border-radius: 50%;
+      transition: transform .25s cubic-bezier(.22,1,.36,1), background .25s ease;
+    }
+    .theme-switch input:checked + .theme-switch-track::after {
+      transform: translateX(20px);
+    }
+    .icon-sun { display: none; }
+    .icon-moon { display: block; }
+
+    /* MAIN — centered column, generous width */
+    main {
+      width: 100%;
+      max-width: 900px;
+      padding: 0 48px 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    /* DAY LABEL */
+    .day-label {
+      font-family: var(--font-sans);
+      font-size: 0.62rem;
+      color: var(--muted);
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      margin-bottom: 40px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* WORD — massive hero */
+    #word-display {
+      font-family: var(--font-display);
+      font-size: clamp(5rem, 14vw, 10rem);
+      line-height: 0.88;
+      color: var(--text);
+      letter-spacing: -0.03em;
+      font-weight: 700;
+      margin-bottom: 22px;
+      width: 100%;
+    }
+
+    #word-phonetic {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 1rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+      letter-spacing: 0.02em;
+    }
+
+    #word-pos {
+      font-family: var(--font-sans);
+      font-size: 0.6rem;
+      color: var(--muted);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    /* INPUT SECTION — constrained centered width */
+    .input-wrap {
+      width: 100%;
+      max-width: 640px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      margin-top: 36px;
+    }
+
+    .input-label {
+      display: none;
+    }
+
+    textarea {
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-style: normal;
+      font-size: 1.15rem;
+      line-height: 1.7;
+      padding: 0 0 16px;
+      resize: none;
+      min-height: 56px;
+      outline: none;
+      text-align: left;
+      transition: border-color .2s;
+    }
+    textarea::placeholder { color: #B8B5B0; }
+    textarea:focus { border-color: var(--text); }
+    textarea:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* WORD CONTEXT BLOCK — collapsible hint + etymology */
+    .word-context-block {
+      width: 100%;
+      margin: 0 0 20px;
+    }
+    .word-context-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      padding: 0;
+      transition: color .2s;
+    }
+    .word-context-toggle:hover { color: var(--text); }
+    .word-context-label {
+      font-family: var(--font-sans);
+      font-size: 0.54rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .word-context-arrow {
+      transition: transform .3s cubic-bezier(.22,1,.36,1);
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .word-context-toggle[aria-expanded="true"] .word-context-arrow {
+      transform: rotate(180deg);
+    }
+    .word-context-body {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows .38s cubic-bezier(.22,1,.36,1);
+    }
+    .word-context-body.open {
+      grid-template-rows: 1fr;
+    }
+    .word-context-inner {
+      overflow: hidden;
+    }
+    .word-context-content {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 18px 0 6px;
+    }
+    .word-info-hint {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 0.92rem;
+      color: var(--text);
+      letter-spacing: 0.01em;
+      line-height: 1.72;
+      text-align: left;
+      opacity: 0.7;
+    }
+    .word-info-etym {
+      font-family: var(--font-sans);
+      font-size: 0.55rem;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-align: left;
+      line-height: 1.65;
+    }
+    .word-info-etym::before {
+      content: 'Etymology  ';
+      color: var(--border-strong);
+      font-weight: 600;
+      letter-spacing: 0.16em;
+    }
+
+    /* SUBMIT */
+    .btn-submit {
+      width: 100%;
+      padding: 20px;
+      background: var(--text);
+      color: var(--bg);
+      font-family: var(--font-sans);
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 100px;
+      cursor: pointer;
+      margin-top: 18px;
+      transition: opacity .2s, transform .1s;
+    }
+    .btn-submit:hover:not(:disabled) { opacity: 0.72; }
+    .btn-submit:active:not(:disabled) { transform: scale(0.99); }
+    .btn-submit:disabled { opacity: 0.15; cursor: not-allowed; }
+
+    /* ERROR + ALREADY PLAYED */
+    .error-banner {
+      display: none;
+      font-family: var(--font-sans);
+      font-size: 0.62rem;
+      color: var(--bad);
+      padding: 10px 0;
+      margin-top: 10px;
+      letter-spacing: 0.04em;
+      text-align: left;
+      width: 100%;
+    }
+
+    #already-played {
+      display: none;
+      text-align: center;
+      padding: 16px 0 0;
+    }
+    #already-played p {
+      font-family: var(--font-sans);
+      font-size: 0.56rem;
+      color: var(--muted);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    #already-played strong {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      color: var(--text);
+      font-weight: 400;
+    }
+
+    /* RESULTS */
+    #results-card {
+      display: none;
+      padding-top: 72px;
+      width: 100%;
+      max-width: 640px;
+      text-align: center;
+    }
+    #results-card.visible {
+      display: block;
+      animation: rise .55s cubic-bezier(.16,1,.3,1) both;
+    }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Score hero */
+    .result-score-hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 12px;
+      position: relative;
+    }
+    .result-score-line {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      line-height: 1;
+    }
+    .result-score-num {
+      font-family: var(--font-display);
+      font-size: clamp(5.5rem, 18vw, 8rem);
+      line-height: 1;
+      letter-spacing: -0.05em;
+      color: var(--text);
+      font-weight: 400;
+    }
+    .result-score-denom-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding-bottom: 6px;
+    }
+    .result-score-denom {
+      font-family: var(--font-sans);
+      font-size: 0.58rem;
+      color: var(--muted);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    /* Arc smile beneath score */
+    .result-arc-wrap {
+      margin-top: 18px;
+      margin-bottom: 10px;
+    }
+    .result-arc-wrap svg { overflow: visible; }
+
+    .result-verdict {
+      font-family: var(--font-serif);
+      font-size: 0.88rem;
+      font-style: italic;
+      color: var(--muted);
+      letter-spacing: 0.01em;
+      margin-bottom: 52px;
+      margin-top: 4px;
+    }
+
+    /* Stacked comparison */
+    .def-compare {
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+    }
+    .def-block {
+      border-top: 1px solid var(--border);
+      padding: 28px 0;
+    }
+    .def-block-label {
+      font-family: var(--font-sans);
+      font-size: 0.5rem;
+      color: var(--text);
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .def-block-label::before {
+      content: '•';
+      color: var(--muted);
+      font-size: 0.7rem;
+    }
+    .def-block-text {
+      font-family: var(--font-serif);
+      font-size: 0.97rem;
+      line-height: 1.72;
+      color: var(--text);
+    }
+
+    /* Share button */
+    .btn-share {
+      width: 100%;
+      padding: 18px;
+      background: transparent;
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 0.58rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      border: 1px solid var(--text);
+      border-radius: 0;
+      cursor: pointer;
+      margin-top: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background .15s, color .15s;
+    }
+    .btn-share:hover { background: var(--text); color: var(--bg); }
+    .btn-share.copied { background: var(--text); color: var(--bg); }
+
+    /* SCORE REVEAL OVERLAY */
+    #score-reveal {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 100;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      display: flex;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .35s ease;
+    }
+    #score-reveal.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    #score-reveal.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .reveal-word {
+      font-family: var(--font-display);
+      font-size: clamp(0.9rem, 3vw, 1.15rem);
+      color: var(--muted);
+      font-style: italic;
+      margin-bottom: 20px;
+      letter-spacing: 0.04em;
+    }
+    .reveal-score-wrap {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .reveal-score {
+      font-family: var(--font-display);
+      font-size: clamp(8rem, 35vw, 13rem);
+      line-height: 1;
+      color: var(--text);
+      letter-spacing: -0.06em;
+      font-weight: 400;
+      transition: none;
+    }
+    .reveal-denom {
+      font-family: var(--font-sans);
+      font-size: 0.62rem;
+      color: var(--muted);
+      letter-spacing: 0.22em;
+      margin-top: 8px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+    /* Arc that grows in after count ends */
+    .reveal-arc {
+      margin-top: 4px;
+      margin-bottom: 44px;
+      opacity: 0;
+      transform: scaleX(0.4);
+      transition: opacity .6s ease, transform .6s cubic-bezier(.22,1,.36,1);
+    }
+    .reveal-arc.visible { opacity: 1; transform: scaleX(1); }
+    .reveal-arc svg { overflow: visible; }
+    .reveal-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      max-width: 280px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity .5s ease, transform .5s cubic-bezier(.22,1,.36,1);
+    }
+    .reveal-actions.visible { opacity: 1; transform: translateY(0); }
+    .btn-lock {
+      width: 100%;
+      padding: 18px;
+      background: var(--text);
+      color: var(--bg);
+      font-family: var(--font-sans);
+      font-size: 0.62rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 0;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+    .btn-lock:hover { opacity: 0.75; }
+    .reveal-attempt-warn {
+      font-family: var(--font-sans);
+      font-size: 0.54rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      text-align: center;
+      max-width: 240px;
+      line-height: 1.6;
+    }
+    .reveal-attempt-counter {
+      font-family: var(--font-sans);
+      font-size: 0.54rem;
+      color: var(--muted);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 600px) {
+      header, main { padding-left: 28px; padding-right: 28px; }
+      #word-display { font-size: clamp(3.5rem, 18vw, 6rem); }
+      .def-compare {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+      }
+      .def-divider {
+        height: 1px;
+        width: 100%;
+        margin: 0 0 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Dictle</div>
+  <label class="theme-switch" aria-label="Toggle dark mode">
+    <input type="checkbox" id="theme-toggle">
+    <span class="theme-switch-track"></span>
+  </label>
+</header>
+
+<main>
+
+  <div class="day-label" id="day-label">—</div>
+  <div id="word-display">—</div>
+  <div id="word-phonetic"></div>
+  <div id="word-pos"></div>
+  <div class="input-wrap">
+    <div class="input-label">Write your definition</div>
+    <div class="word-context-block">
+      <button class="word-context-toggle" id="word-context-toggle" aria-expanded="false">
+        <span class="word-context-label">About this word</span>
+        <svg class="word-context-arrow" width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M1.5 3.5L5 6.5L8.5 3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div class="word-context-body" id="word-context-body">
+        <div class="word-context-inner">
+          <div class="word-context-content">
+            <div id="word-hint" class="word-info-hint"></div>
+            <div id="word-etym" class="word-info-etym"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <textarea id="user-input" maxlength="300" placeholder="What does it mean…" rows="2"></textarea>
+
+    <button class="btn-submit" id="btn-submit" disabled>Submit</button>
+    <div class="error-banner" id="error-banner"></div>
+    <div id="already-played">
+      <p>Already played today</p>
+      <strong id="ap-score">—</strong>
+    </div>
+  </div>
+
+  <div id="results-card">
+    <div class="result-score-hero">
+      <div class="result-score-line">
+        <span class="result-score-num" id="score-number">0</span>
+        <div class="result-score-denom-wrap">
+          <span class="result-score-denom">/ 100</span>
+        </div>
+      </div>
+      <div class="result-arc-wrap" id="result-arc-wrap">
+        <svg width="120" height="36" viewBox="0 0 120 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path id="result-arc-path" d="M10 8 Q60 52 110 8" stroke="#141414" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+    <div class="result-verdict" id="verdict-text">—</div>
+    <span id="rp-emoji" style="display:none"></span>
+    <div class="def-compare">
+      <div class="def-block">
+        <div class="def-block-label">You said</div>
+        <div class="def-block-text" id="result-user-def">—</div>
+      </div>
+      <div class="def-block">
+        <div class="def-block-label">The definition</div>
+        <div class="def-block-text" id="result-correct-def">—</div>
+      </div>
+    </div>
+    <button class="btn-share" id="btn-share">Share result</button>
+  </div>
+
+</main>
+
+<div id="score-reveal">
+  <div class="reveal-word" id="reveal-word">—</div>
+  <div class="reveal-score-wrap">
+    <div class="reveal-score" id="reveal-score">0</div>
+    <div class="reveal-denom">/ 100</div>
+    <div class="reveal-arc" id="reveal-arc">
+      <svg width="120" height="36" viewBox="0 0 120 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 8 Q60 52 110 8" stroke="#141414" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </div>
+  <div class="reveal-attempt-counter" id="reveal-attempt-counter"></div>
+  <div class="reveal-actions" id="reveal-actions">
+    <button class="btn-lock" id="btn-lock">See results &rarr;</button>
+    <div class="reveal-attempt-warn" id="reveal-warn"></div>
+  </div>
+</div>
+
+<script>
+  /* ════════════════════════════════════════════════════
+   * WORD BANK — 54 entries, hardcoded
+   * Word selection is deterministic by UTC day so all
+   * users see the same word. Cycles every 54 days.
+   *
+   * NOTE on sources:
+   *  • Most words are standard English dictionary words.
+   *  • A handful (sonder, vellichor, kenopsia, limerence,
+   *    chrysalism, apricity) come from The Dictionary of
+   *    Obscure Sorrows or niche usage — not in Merriam-
+   *    Webster. They're intentionally included for
+   *    discovery value, but flag them if you want a
+   *    strictly-standard word list.
+   * ════════════════════════════════════════════════════ */
+  // ── WORD BANK ─────────────────────────────────────────────────────────────
+  // 210 words tagged easy / medium / hard.
+  // Difficulty guide:
+  //   easy   — widely known, core vocab, often encountered in everyday reading
+  //   medium — educated-adult vocabulary, may need a moment's thought
+  //   hard   — rare, technical, borrowed, or niche; likely to surprise most players
+  // ──────────────────────────────────────────────────────────────────────────
+
+  const WORDS = [
+
+    // ── EASY (70 words) ───────────────────────────────────────────────────
+    { tier:"easy", word:"empathy",       pos:"noun",      phonetic:"EM-puh-thee",         definition:"the ability to understand and share the feelings of another person" },
+    { tier:"easy", word:"paradox",       pos:"noun",      phonetic:"PAIR-uh-doks",         definition:"a statement that seems self-contradictory but may express a truth" },
+    { tier:"easy", word:"catalyst",      pos:"noun",      phonetic:"KAT-uh-list",          definition:"a person or thing that precipitates an event or change" },
+    { tier:"easy", word:"apathy",        pos:"noun",      phonetic:"AP-uh-thee",           definition:"lack of interest, enthusiasm, or concern" },
+    { tier:"easy", word:"serendipity",   pos:"noun",      phonetic:"sair-un-DIP-ih-tee",   definition:"the occurrence of fortunate events by chance" },
+    { tier:"easy", word:"labyrinth",     pos:"noun",      phonetic:"LAB-uh-rinth",         definition:"a complicated irregular network of passages or paths" },
+    { tier:"easy", word:"tenacious",     pos:"adjective", phonetic:"tuh-NAY-shus",         definition:"holding firmly to a purpose or belief; not giving up easily" },
+    { tier:"easy", word:"hubris",        pos:"noun",      phonetic:"HYOO-bris",            definition:"excessive pride or self-confidence that leads to downfall" },
+    { tier:"easy", word:"catharsis",     pos:"noun",      phonetic:"kuh-THAR-sis",         definition:"the release of pent-up emotions through art or dramatic experience" },
+    { tier:"easy", word:"oblivion",      pos:"noun",      phonetic:"uh-BLIV-ee-un",        definition:"the state of being unaware of or forgotten by the world" },
+    { tier:"easy", word:"eloquent",      pos:"adjective", phonetic:"EL-uh-kwunt",          definition:"fluent and persuasive in speaking or writing" },
+    { tier:"easy", word:"zeitgeist",     pos:"noun",      phonetic:"TSYTE-gyst",           definition:"the defining spirit or mood of a particular period in history" },
+    { tier:"easy", word:"axiom",         pos:"noun",      phonetic:"AK-see-um",            definition:"a statement regarded as self-evidently true" },
+    { tier:"easy", word:"inertia",       pos:"noun",      phonetic:"in-UR-shuh",           definition:"tendency to remain unchanged or resist change without an outside force" },
+    { tier:"easy", word:"nuance",        pos:"noun",      phonetic:"NYOO-ahns",            definition:"a subtle difference in meaning, expression, or response" },
+    { tier:"easy", word:"entropy",       pos:"noun",      phonetic:"EN-truh-pee",          definition:"gradual decline into disorder and unpredictability" },
+    { tier:"easy", word:"rhetoric",      pos:"noun",      phonetic:"RET-uh-rik",           definition:"language designed to persuade or impress, sometimes at the expense of honesty" },
+    { tier:"easy", word:"pensive",       pos:"adjective", phonetic:"PEN-siv",              definition:"engaged in deep or serious thought, often with a hint of sadness" },
+    { tier:"easy", word:"vicarious",     pos:"adjective", phonetic:"vy-KAIR-ee-us",        definition:"experienced through another person's actions rather than one's own" },
+    { tier:"easy", word:"panacea",       pos:"noun",      phonetic:"pan-uh-SEE-uh",        definition:"a solution or remedy claimed to cure all difficulties or diseases" },
+    { tier:"easy", word:"nostalgia",     pos:"noun",      phonetic:"nos-TAL-juh",          definition:"a sentimental longing for the happiness of a former time or place" },
+    { tier:"easy", word:"ambiguous",     pos:"adjective", phonetic:"am-BIG-yoo-us",        definition:"open to more than one interpretation; not having a clear meaning" },
+    { tier:"easy", word:"melancholy",    pos:"noun",      phonetic:"MEL-un-kol-ee",        definition:"a deep, pensive, and long-lasting sadness" },
+    { tier:"easy", word:"cynical",       pos:"adjective", phonetic:"SIN-ih-kul",           definition:"believing that people are motivated purely by self-interest; distrustful" },
+    { tier:"easy", word:"dilemma",       pos:"noun",      phonetic:"dih-LEM-uh",           definition:"a situation in which a difficult choice must be made between two options" },
+    { tier:"easy", word:"autonomy",      pos:"noun",      phonetic:"aw-TON-uh-mee",        definition:"the right or condition of self-government and independence" },
+    { tier:"easy", word:"arbitrary",     pos:"adjective", phonetic:"AR-bih-trer-ee",       definition:"based on random choice or personal whim, not reason or system" },
+    { tier:"easy", word:"volatile",      pos:"adjective", phonetic:"VOL-uh-tul",           definition:"liable to change rapidly and unpredictably, especially for the worse" },
+    { tier:"easy", word:"pragmatic",     pos:"adjective", phonetic:"prag-MAT-ik",          definition:"dealing with things sensibly and realistically based on practical considerations" },
+    { tier:"easy", word:"resilient",     pos:"adjective", phonetic:"rih-ZIL-yunt",         definition:"able to recover quickly from difficult conditions" },
+    { tier:"easy", word:"cliché",        pos:"noun",      phonetic:"klee-SHAY",            definition:"a phrase or opinion so used it has lost its original meaning and force" },
+    { tier:"easy", word:"irony",         pos:"noun",      phonetic:"EYE-ruh-nee",          definition:"the expression of meaning using language that normally signifies the opposite" },
+    { tier:"easy", word:"surreal",       pos:"adjective", phonetic:"suh-REEL",             definition:"having the disorienting quality of a dream; bizarre and unreal" },
+    { tier:"easy", word:"verbose",       pos:"adjective", phonetic:"vur-BOHS",             definition:"using more words than needed; wordy" },
+    { tier:"easy", word:"cathartic",     pos:"adjective", phonetic:"kuh-THAR-tik",         definition:"providing psychological relief through the expression of strong emotion" },
+    { tier:"easy", word:"eccentric",     pos:"adjective", phonetic:"ik-SEN-trik",          definition:"unconventional and slightly strange in behaviour or appearance" },
+    { tier:"easy", word:"ambivalent",    pos:"adjective", phonetic:"am-BIV-uh-lunt",       definition:"having mixed or contradictory feelings about something" },
+    { tier:"easy", word:"candid",        pos:"adjective", phonetic:"KAN-did",              definition:"truthful and straightforward; frank" },
+    { tier:"easy", word:"mundane",       pos:"adjective", phonetic:"mun-DAYN",             definition:"lacking excitement or interest; dull and ordinary" },
+    { tier:"easy", word:"absurd",        pos:"adjective", phonetic:"ab-SURD",              definition:"wildly unreasonable or illogical; ridiculously incongruous" },
+    { tier:"easy", word:"profound",      pos:"adjective", phonetic:"pruh-FOWND",           definition:"very great or intense; having deep insight or understanding" },
+    { tier:"easy", word:"candour",       pos:"noun",      phonetic:"KAN-dur",              definition:"the quality of being open and honest in expression; frankness" },
+    { tier:"easy", word:"cynicism",      pos:"noun",      phonetic:"SIN-ih-siz-um",        definition:"an inclination to believe that people are motivated purely by self-interest" },
+    { tier:"easy", word:"curt",          pos:"adjective", phonetic:"KURT",                 definition:"rudely brief in speech or manner; abrupt" },
+    { tier:"easy", word:"frugal",        pos:"adjective", phonetic:"FROO-gul",             definition:"sparing or economical with money or food; thrifty" },
+    { tier:"easy", word:"gregarious",    pos:"adjective", phonetic:"grih-GAIR-ee-us",      definition:"fond of the company of others; sociable" },
+    { tier:"easy", word:"placid",        pos:"adjective", phonetic:"PLAS-id",              definition:"not easily upset or excited; calm and peaceful" },
+    { tier:"easy", word:"vivid",         pos:"adjective", phonetic:"VIV-id",               definition:"producing powerful feelings or strong, clear images in the mind" },
+    { tier:"easy", word:"naive",         pos:"adjective", phonetic:"nah-EEV",              definition:"showing a lack of experience, wisdom, or judgement" },
+    { tier:"easy", word:"stoic",         pos:"adjective", phonetic:"STOH-ik",              definition:"enduring pain or hardship without showing one's feelings or complaining" },
+    { tier:"easy", word:"euphoria",      pos:"noun",      phonetic:"yoo-FOR-ee-uh",        definition:"a feeling or state of intense excitement and happiness" },
+    { tier:"easy", word:"schadenfreude", pos:"noun",      phonetic:"SHAH-den-froy-duh",    definition:"pleasure derived from another person's misfortune" },
+    { tier:"easy", word:"emulate",       pos:"verb",      phonetic:"EM-yoo-layt",          definition:"to match or surpass, typically by imitation; to try to equal" },
+    { tier:"easy", word:"eloquence",     pos:"noun",      phonetic:"EL-uh-kwunse",         definition:"fluent, forceful, and persuasive use of language" },
+    { tier:"easy", word:"skeptic",       pos:"noun",      phonetic:"SKEP-tik",             definition:"a person inclined to question or doubt accepted opinions" },
+    { tier:"easy", word:"bias",          pos:"noun",      phonetic:"BY-us",                definition:"prejudice in favour of or against one thing compared with another" },
+    { tier:"easy", word:"virtue",        pos:"noun",      phonetic:"VUR-choo",             definition:"behaviour showing high moral standards" },
+    { tier:"easy", word:"absolution",    pos:"noun",      phonetic:"ab-suh-LOO-shun",      definition:"formal release from guilt, obligation, or punishment" },
+    { tier:"easy", word:"ironic",        pos:"adjective", phonetic:"eye-RON-ik",           definition:"happening in the opposite way to what is expected, typically in an amusing way" },
+    { tier:"easy", word:"bliss",         pos:"noun",      phonetic:"BLISS",                definition:"perfect happiness; great joy" },
+    { tier:"easy", word:"frantic",       pos:"adjective", phonetic:"FRAN-tik",             definition:"wildly excited or distraught with fear, anxiety, or other emotion" },
+    { tier:"easy", word:"mediocre",      pos:"adjective", phonetic:"mee-dee-OH-kur",       definition:"of only moderate quality; not very good" },
+    { tier:"easy", word:"nostalgic",     pos:"adjective", phonetic:"nos-TAL-jik",          definition:"feeling or evoking a sentimental longing for the past" },
+    { tier:"easy", word:"serene",        pos:"adjective", phonetic:"suh-REEN",             definition:"calm, peaceful, and untroubled; tranquil" },
+    { tier:"easy", word:"tension",       pos:"noun",      phonetic:"TEN-shun",             definition:"mental or emotional strain; a strained relationship between two parties" },
+    { tier:"easy", word:"wistful",       pos:"adjective", phonetic:"WIST-ful",             definition:"having a feeling of vague or regretful longing" },
+    { tier:"easy", word:"turmoil",       pos:"noun",      phonetic:"TUR-moyl",             definition:"a state of great disturbance, confusion, or uncertainty" },
+    { tier:"easy", word:"whimsical",     pos:"adjective", phonetic:"WHIM-zih-kul",         definition:"playfully quaint or fanciful, especially in an appealing way" },
+
+    // ── MEDIUM (80 words) ─────────────────────────────────────────────────
+    { tier:"medium", word:"mellifluous",   pos:"adjective", phonetic:"meh-LIF-loo-us",       definition:"having a pleasantly smooth and musical sound" },
+    { tier:"medium", word:"petrichor",     pos:"noun",      phonetic:"PET-rih-kor",           definition:"the earthy scent produced when rain falls on dry soil" },
+    { tier:"medium", word:"liminal",       pos:"adjective", phonetic:"LIM-ih-nul",            definition:"relating to a transitional or threshold stage between two states" },
+    { tier:"medium", word:"ethereal",      pos:"adjective", phonetic:"ih-THEER-ee-ul",        definition:"extremely delicate and light, seeming too perfect for this world" },
+    { tier:"medium", word:"soliloquy",     pos:"noun",      phonetic:"suh-LIL-uh-kwee",       definition:"an act of speaking one's thoughts aloud when alone or regardless of hearers" },
+    { tier:"medium", word:"quixotic",      pos:"adjective", phonetic:"kwik-SOT-ik",           definition:"exceedingly idealistic and unrealistic in pursuit of goals" },
+    { tier:"medium", word:"idiosyncrasy",  pos:"noun",      phonetic:"id-ee-oh-SINK-ruh-see", definition:"a mode of behaviour or thinking peculiar to a person" },
+    { tier:"medium", word:"ennui",         pos:"noun",      phonetic:"on-WEE",                definition:"a feeling of listlessness from lack of excitement or occupation" },
+    { tier:"medium", word:"sycophant",     pos:"noun",      phonetic:"SIK-uh-fant",           definition:"a person who acts obsequiously toward those in power to gain favour" },
+    { tier:"medium", word:"didactic",      pos:"adjective", phonetic:"dy-DAK-tik",            definition:"intended to teach or instruct, particularly in a moral sense" },
+    { tier:"medium", word:"ineffable",     pos:"adjective", phonetic:"in-EF-uh-bul",          definition:"too great or extreme to be expressed in words" },
+    { tier:"medium", word:"subterfuge",    pos:"noun",      phonetic:"SUB-tur-fyooj",         definition:"deceit used in order to achieve one's goal" },
+    { tier:"medium", word:"halcyon",       pos:"adjective", phonetic:"HAL-see-un",            definition:"denoting a period of happiness, prosperity, and tranquility in the past" },
+    { tier:"medium", word:"equanimity",    pos:"noun",      phonetic:"ee-kwuh-NIM-ih-tee",    definition:"mental calmness and composure, especially in difficult situations" },
+    { tier:"medium", word:"lassitude",     pos:"noun",      phonetic:"LAS-ih-tyood",          definition:"physical or mental weariness; lack of energy" },
+    { tier:"medium", word:"sonder",        pos:"noun",      phonetic:"SON-dur",               definition:"the realisation that each passerby has a life as vivid and complex as your own" },
+    { tier:"medium", word:"limerence",     pos:"noun",      phonetic:"LIM-ur-unse",           definition:"the state of being obsessively infatuated with another person" },
+    { tier:"medium", word:"chrysalism",    pos:"noun",      phonetic:"KRIS-uh-liz-um",        definition:"the tranquil feeling of being safely indoors during a storm" },
+    { tier:"medium", word:"kenopsia",      pos:"noun",      phonetic:"keh-NOP-see-uh",        definition:"the eerie atmosphere of a place that is usually busy but now deserted" },
+    { tier:"medium", word:"apricity",      pos:"noun",      phonetic:"uh-PRIS-ih-tee",        definition:"the warmth of the sun felt on a cold winter's day" },
+    { tier:"medium", word:"vellichor",     pos:"noun",      phonetic:"VEL-ih-kor",            definition:"the strange wistfulness of used bookshops" },
+    { tier:"medium", word:"perspicuous",   pos:"adjective", phonetic:"pur-SPIK-yoo-us",       definition:"clearly expressed and easily understood" },
+    { tier:"medium", word:"insouciant",    pos:"adjective", phonetic:"in-SOO-see-unt",        definition:"casually unconcerned or indifferent; carefree" },
+    { tier:"medium", word:"ephemeron",     pos:"noun",      phonetic:"ih-FEM-ur-on",          definition:"a thing that exists or is used or enjoyed for only a short time" },
+    { tier:"medium", word:"sanguine",      pos:"adjective", phonetic:"SANG-gwin",             definition:"optimistic, especially in a difficult situation" },
+    { tier:"medium", word:"torpor",        pos:"noun",      phonetic:"TOR-pur",               definition:"a state of physical or mental inactivity; lethargy" },
+    { tier:"medium", word:"vicissitude",   pos:"noun",      phonetic:"vih-SIS-ih-tyood",      definition:"a change of circumstances or fortune, usually unwelcome" },
+    { tier:"medium", word:"propitious",    pos:"adjective", phonetic:"pruh-PISH-us",          definition:"giving or indicating a good chance of success; favourable" },
+    { tier:"medium", word:"trepidation",   pos:"noun",      phonetic:"trep-ih-DAY-shun",      definition:"a feeling of fear or anxiety about something that may happen" },
+    { tier:"medium", word:"obstinate",     pos:"adjective", phonetic:"OB-stih-nut",           definition:"stubbornly refusing to change one's opinion or chosen course of action" },
+    { tier:"medium", word:"corpulent",     pos:"adjective", phonetic:"KOR-pyoo-lunt",         definition:"excessively overweight; fat" },
+    { tier:"medium", word:"diffident",     pos:"adjective", phonetic:"DIF-ih-dunt",           definition:"modest or shy due to a lack of self-confidence" },
+    { tier:"medium", word:"acrimony",      pos:"noun",      phonetic:"AK-rih-moh-nee",        definition:"bitterness or ill feeling, especially in speech or manner" },
+    { tier:"medium", word:"ameliorate",    pos:"verb",      phonetic:"uh-MEEL-yuh-rayt",      definition:"to make something bad or unsatisfactory better; improve" },
+    { tier:"medium", word:"anodyne",       pos:"adjective", phonetic:"AN-uh-dyne",            definition:"not likely to offend or arouse strong feelings; innocuous" },
+    { tier:"medium", word:"byzantine",     pos:"adjective", phonetic:"BIZ-un-teen",           definition:"excessively complicated and difficult to understand; devious" },
+    { tier:"medium", word:"chicanery",     pos:"noun",      phonetic:"shih-KAY-nuh-ree",      definition:"the use of trickery to achieve one's purpose" },
+    { tier:"medium", word:"circumspect",   pos:"adjective", phonetic:"SUR-kum-spekt",         definition:"wary and unwilling to take risks; cautious" },
+    { tier:"medium", word:"conflate",      pos:"verb",      phonetic:"kun-FLAYT",             definition:"to combine two or more texts or ideas into one" },
+    { tier:"medium", word:"contrite",      pos:"adjective", phonetic:"KON-tryte",             definition:"feeling or expressing remorse or penitence; affected by guilt" },
+    { tier:"medium", word:"cupidity",      pos:"noun",      phonetic:"kyoo-PID-ih-tee",       definition:"greed for money or possessions" },
+    { tier:"medium", word:"deference",     pos:"noun",      phonetic:"DEF-ur-unse",           definition:"respectful submission or yielding to the judgement of another" },
+    { tier:"medium", word:"dissonance",    pos:"noun",      phonetic:"DIS-uh-nunse",          definition:"a lack of harmony or agreement between things" },
+    { tier:"medium", word:"ebullient",     pos:"adjective", phonetic:"ih-BULL-yunt",          definition:"cheerful and full of energy" },
+    { tier:"medium", word:"enervate",      pos:"verb",      phonetic:"EN-ur-vayt",            definition:"to weaken someone so they feel drained of energy or vitality" },
+    { tier:"medium", word:"languid",       pos:"adjective", phonetic:"LANG-gwid",             definition:"having a disinclination for physical exertion or effort; slow and relaxed" },
+    { tier:"medium", word:"equivocate",    pos:"verb",      phonetic:"ih-KWIV-uh-kayt",       definition:"to use ambiguous language so as to conceal the truth or avoid commitment" },
+    { tier:"medium", word:"fecund",        pos:"adjective", phonetic:"FEE-kund",              definition:"producing or capable of producing an abundance of offspring or ideas" },
+    { tier:"medium", word:"felicitous",    pos:"adjective", phonetic:"fuh-LIS-ih-tus",        definition:"well-chosen or apt; pleasing and fortunate" },
+    { tier:"medium", word:"garrulous",     pos:"adjective", phonetic:"GAIR-uh-lus",           definition:"excessively talkative, especially on trivial matters" },
+    { tier:"medium", word:"hapless",       pos:"adjective", phonetic:"HAP-lis",               definition:"unfortunate; unlucky" },
+    { tier:"medium", word:"ignominious",   pos:"adjective", phonetic:"ig-nuh-MIN-ee-us",      definition:"deserving or causing public disgrace; humiliating" },
+    { tier:"medium", word:"impetuous",     pos:"adjective", phonetic:"im-PECH-oo-us",         definition:"acting or done quickly and without thought or care" },
+    { tier:"medium", word:"indolent",      pos:"adjective", phonetic:"IN-duh-lunt",           definition:"wanting to avoid activity or exertion; lazy" },
+    { tier:"medium", word:"intransigent",  pos:"adjective", phonetic:"in-TRAN-sih-junt",      definition:"refusing to change one's views or to agree; uncompromising" },
+    { tier:"medium", word:"inveterate",    pos:"adjective", phonetic:"in-VET-ur-ut",          definition:"having a particular habit or activity that is firmly established" },
+    { tier:"medium", word:"maudlin",       pos:"adjective", phonetic:"MAWD-lin",              definition:"self-pityingly or tearfully sentimental, often as a result of drink" },
+    { tier:"medium", word:"mendacious",    pos:"adjective", phonetic:"men-DAY-shus",          definition:"not telling the truth; lying" },
+    { tier:"medium", word:"meretricious",  pos:"adjective", phonetic:"mair-ih-TRISH-us",      definition:"apparently attractive but having in reality no value or integrity" },
+    { tier:"medium", word:"obsequious",    pos:"adjective", phonetic:"ob-SEE-kwee-us",        definition:"obedient or attentive to an excessive or servile degree; fawning" },
+    { tier:"medium", word:"perfidious",    pos:"adjective", phonetic:"pur-FID-ee-us",         definition:"guilty of betrayal; deceitful and untrustworthy" },
+    { tier:"medium", word:"perspicacious", pos:"adjective", phonetic:"pur-spih-KAY-shus",     definition:"having a ready insight into things; shrewd" },
+    { tier:"medium", word:"phlegmatic",    pos:"adjective", phonetic:"fleg-MAT-ik",           definition:"having an unemotional, stolidly calm temperament" },
+    { tier:"medium", word:"platitude",     pos:"noun",      phonetic:"PLAT-ih-tyood",         definition:"a remark or statement that is overused and therefore lacks meaning" },
+    { tier:"medium", word:"pliant",        pos:"adjective", phonetic:"PLY-unt",               definition:"easily influenced; yielding readily to others" },
+    { tier:"medium", word:"precipitate",   pos:"verb",      phonetic:"prih-SIP-ih-tayt",      definition:"to cause an event to happen suddenly, unexpectedly, or prematurely" },
+    { tier:"medium", word:"prodigal",      pos:"adjective", phonetic:"PROD-ih-gul",           definition:"spending money or using resources freely and recklessly; wastefully extravagant" },
+    { tier:"medium", word:"querulous",     pos:"adjective", phonetic:"KWAIR-uh-lus",          definition:"complaining in a petulant or whining manner" },
+    { tier:"medium", word:"recalcitrant",  pos:"adjective", phonetic:"rih-KAL-sih-trunt",     definition:"having an obstinately uncooperative attitude toward authority or discipline" },
+    { tier:"medium", word:"reticent",      pos:"adjective", phonetic:"RET-ih-sunt",           definition:"not revealing one's thoughts or feelings readily; reserved" },
+    { tier:"medium", word:"sagacious",     pos:"adjective", phonetic:"suh-GAY-shus",          definition:"having or showing keen mental discernment and good judgement; wise" },
+    { tier:"medium", word:"sanctimonious", pos:"adjective", phonetic:"sank-tih-MOH-nee-us",   definition:"making a show of being morally superior; self-righteous" },
+    { tier:"medium", word:"sycophancy",    pos:"noun",      phonetic:"SIK-uh-fun-see",        definition:"excessive flattery towards someone in order to gain advantage" },
+    { tier:"medium", word:"tendentious",   pos:"adjective", phonetic:"ten-DEN-shus",          definition:"promoting a particular cause or point of view; biased" },
+    { tier:"medium", word:"truculent",     pos:"adjective", phonetic:"TRUK-yoo-lunt",         definition:"eager or quick to argue or fight; aggressively defiant" },
+    { tier:"medium", word:"umbrage",       pos:"noun",      phonetic:"UM-brij",               definition:"offence or annoyance; resentment" },
+    { tier:"medium", word:"unctuous",      pos:"adjective", phonetic:"UNK-choo-us",           definition:"excessively flattering in an ingratiating way; oily" },
+    { tier:"medium", word:"vapid",         pos:"adjective", phonetic:"VAP-id",                definition:"offering nothing that is stimulating or challenging; dull" },
+    { tier:"medium", word:"vitriolic",     pos:"adjective", phonetic:"vit-ree-OL-ik",         definition:"filled with bitter criticism or malice; scathing" },
+
+    // ── HARD (70 words) ───────────────────────────────────────────────────
+    { tier:"hard", word:"palimpsest",     pos:"noun",      phonetic:"PAL-imp-sest",          definition:"something altered but still bearing visible traces of an earlier form" },
+    { tier:"hard", word:"verisimilitude", pos:"noun",      phonetic:"vair-ih-sih-MIL-ih-tyood", definition:"the appearance of being true or real" },
+    { tier:"hard", word:"solipsism",      pos:"noun",      phonetic:"SOL-ip-siz-um",         definition:"the philosophical view that the self is all that can be known to exist" },
+    { tier:"hard", word:"sophistry",      pos:"noun",      phonetic:"SOF-is-tree",           definition:"the use of clever but misleading arguments" },
+    { tier:"hard", word:"pyrrhic",        pos:"adjective", phonetic:"PIRR-ik",               definition:"won at such a great cost that it is equivalent to defeat" },
+    { tier:"hard", word:"fugacious",      pos:"adjective", phonetic:"fyoo-GAY-shus",         definition:"tending to disappear; fleeting" },
+    { tier:"hard", word:"recondite",      pos:"adjective", phonetic:"REK-un-dyte",           definition:"not known by many people; obscure or abstruse" },
+    { tier:"hard", word:"susurrus",       pos:"noun",      phonetic:"soo-SUR-us",            definition:"a soft murmuring or whispering sound" },
+    { tier:"hard", word:"noctilucent",    pos:"adjective", phonetic:"nok-tih-LOO-sunt",      definition:"denoting very high altitude clouds that glow faintly after sunset" },
+    { tier:"hard", word:"tenebrism",      pos:"noun",      phonetic:"TEN-uh-briz-um",        definition:"a style of painting using dramatic contrasts between light and dark" },
+    { tier:"hard", word:"acumen",         pos:"noun",      phonetic:"AK-yoo-mun",            definition:"the ability to make good judgements and take quick decisions" },
+    { tier:"hard", word:"adumbrate",      pos:"verb",      phonetic:"AD-um-brayt",           definition:"to report or represent in outline; to foreshadow or symbolise" },
+    { tier:"hard", word:"anamnesis",      pos:"noun",      phonetic:"an-am-NEE-sis",         definition:"recollection, especially of a supposed previous existence; reminiscence" },
+    { tier:"hard", word:"aporia",         pos:"noun",      phonetic:"uh-POR-ee-uh",          definition:"an irresolvable internal contradiction or logical disjunction in a text or argument" },
+    { tier:"hard", word:"apposite",       pos:"adjective", phonetic:"AP-uh-zit",             definition:"apt in the circumstances or in relation to something; fitting" },
+    { tier:"hard", word:"asperity",       pos:"noun",      phonetic:"as-PAIR-ih-tee",        definition:"harshness of tone or manner; roughness" },
+    { tier:"hard", word:"atavism",        pos:"noun",      phonetic:"AT-uh-viz-um",          definition:"the reappearance of an ancestral characteristic after several generations of absence" },
+    { tier:"hard", word:"bathetic",       pos:"adjective", phonetic:"buh-THET-ik",           definition:"producing an effect of anticlimax; producing a sudden drop from the sublime to the trivial" },
+    { tier:"hard", word:"captious",       pos:"adjective", phonetic:"KAP-shus",              definition:"tending to find fault or raise objections on trivial grounds" },
+    { tier:"hard", word:"casuistry",      pos:"noun",      phonetic:"KAZ-yoo-is-tree",       definition:"the process of resolving moral problems by applying theoretical rules to particular cases" },
+    { tier:"hard", word:"celerity",       pos:"noun",      phonetic:"suh-LAIR-ih-tee",       definition:"swiftness of movement or action; speed" },
+    { tier:"hard", word:"chimerical",     pos:"adjective", phonetic:"ky-MAIR-ih-kul",        definition:"existing only as a fantasy; wildly unrealistic" },
+    { tier:"hard", word:"clerisy",        pos:"noun",      phonetic:"KLAIR-ih-see",          definition:"a distinct class of learned or literary people; the intelligentsia" },
+    { tier:"hard", word:"contumacious",   pos:"adjective", phonetic:"kon-tyoo-MAY-shus",     definition:"stubbornly or wilfully disobedient to authority" },
+    { tier:"hard", word:"contumelious",   pos:"adjective", phonetic:"kon-tyoo-MEE-lee-us",   definition:"scornful and insulting; showing contemptuous rudeness" },
+    { tier:"hard", word:"crepuscular",    pos:"adjective", phonetic:"krih-PUS-kyoo-lur",     definition:"of, resembling, or relating to twilight; active at dusk or dawn" },
+    { tier:"hard", word:"defenestration", pos:"noun",      phonetic:"dee-fen-ih-STRAY-shun", definition:"the action of throwing someone or something out of a window" },
+    { tier:"hard", word:"deracinate",     pos:"verb",      phonetic:"dih-RAS-ih-nayt",       definition:"to tear something up by the roots; to uproot a person from their natural environment" },
+    { tier:"hard", word:"diaphanous",     pos:"adjective", phonetic:"dy-AF-uh-nus",          definition:"so thin and delicate as to be transparent or translucent" },
+    { tier:"hard", word:"diegesis",       pos:"noun",      phonetic:"dy-uh-JEE-sis",         definition:"a narrative or plot, especially in a film, as opposed to the way it is told" },
+    { tier:"hard", word:"dysphoria",      pos:"noun",      phonetic:"dis-FOR-ee-uh",         definition:"a state of unease or generalised dissatisfaction with life; the opposite of euphoria" },
+    { tier:"hard", word:"eldritch",       pos:"adjective", phonetic:"EL-dritch",             definition:"weird and sinister or ghostly; eerie" },
+    { tier:"hard", word:"emollient",      pos:"adjective", phonetic:"ih-MOL-yunt",           definition:"having the quality of softening or soothing; intended to avoid controversy" },
+    { tier:"hard", word:"encomium",       pos:"noun",      phonetic:"en-KOH-mee-um",         definition:"a speech or piece of writing that praises someone or something highly" },
+    { tier:"hard", word:"exiguous",       pos:"adjective", phonetic:"ig-ZIG-yoo-us",         definition:"very small in size or amount; scanty" },
+    { tier:"hard", word:"fatuous",        pos:"adjective", phonetic:"FACH-oo-us",            definition:"silly and pointless; self-complacently foolish" },
+    { tier:"hard", word:"febrile",        pos:"adjective", phonetic:"FEB-ryl",               definition:"having or showing the symptoms of a fever; nervously anxious and overactive" },
+    { tier:"hard", word:"fulgent",        pos:"adjective", phonetic:"FUL-junt",              definition:"gleaming; radiant with a brilliant light" },
+    { tier:"hard", word:"gelid",          pos:"adjective", phonetic:"JEL-id",                definition:"icy cold; very cold" },
+    { tier:"hard", word:"gnosis",         pos:"noun",      phonetic:"NOH-sis",               definition:"knowledge of spiritual mysteries; direct experiential knowledge of the divine" },
+    { tier:"hard", word:"haecceity",      pos:"noun",      phonetic:"hek-SEE-ih-tee",        definition:"the quality that makes a thing the particular thing that it is; thisness" },
+    { tier:"hard", word:"hebetude",       pos:"noun",      phonetic:"HEB-ih-tyood",          definition:"the state of being dull or lethargic; mental dullness" },
+    { tier:"hard", word:"hiraeth",        pos:"noun",      phonetic:"HEER-eyeth",            definition:"a longing for home or for the past, often with a sense of grief for what is lost" },
+    { tier:"hard", word:"hypnagogia",     pos:"noun",      phonetic:"hip-nuh-GOH-jee-uh",   definition:"the state of consciousness leading into sleep, often involving vivid hallucinations" },
+    { tier:"hard", word:"iconoclast",     pos:"noun",      phonetic:"eye-KON-uh-klast",      definition:"a person who attacks cherished beliefs or institutions" },
+    { tier:"hard", word:"imbricate",      pos:"verb",      phonetic:"IM-brih-kayt",          definition:"to arrange or lie so as to overlap like roof tiles" },
+    { tier:"hard", word:"impecunious",    pos:"adjective", phonetic:"im-pih-KYOO-nee-us",   definition:"having little or no money; penniless" },
+    { tier:"hard", word:"inchoate",       pos:"adjective", phonetic:"in-KOH-it",             definition:"just begun and not fully formed or developed; rudimentary" },
+    { tier:"hard", word:"inimical",       pos:"adjective", phonetic:"ih-NIM-ih-kul",         definition:"tending to obstruct or harm; unfriendly; hostile" },
+    { tier:"hard", word:"insuperable",    pos:"adjective", phonetic:"in-SOO-pur-uh-bul",     definition:"impossible to overcome; insurmountable" },
+    { tier:"hard", word:"interpolate",    pos:"verb",      phonetic:"in-TUR-puh-layt",       definition:"to insert words into a text, or new data into a series, so as to alter or corrupt" },
+    { tier:"hard", word:"interstice",     pos:"noun",      phonetic:"in-TUR-stis",           definition:"a small or narrow space or gap between things; a crack or crevice" },
+    { tier:"hard", word:"iridescent",     pos:"adjective", phonetic:"ir-ih-DES-unt",         definition:"showing luminous colours that seem to change when seen from different angles" },
+    { tier:"hard", word:"jejune",         pos:"adjective", phonetic:"jih-JOON",              definition:"naive and simplistic; lacking nutritive value; dull" },
+    { tier:"hard", word:"lachrymose",     pos:"adjective", phonetic:"LAK-rih-mohs",          definition:"tearful or given to weeping; inducing tears" },
+    { tier:"hard", word:"limn",           pos:"verb",      phonetic:"LIM",                   definition:"to depict or describe in painting or words; to suffuse with light" },
+    { tier:"hard", word:"logorrhea",      pos:"noun",      phonetic:"log-uh-REE-uh",         definition:"a tendency to extreme loquacity; an excessive flow of words" },
+    { tier:"hard", word:"lucubrate",      pos:"verb",      phonetic:"LOO-kyoo-brayt",        definition:"to write or study by lamplight; to produce scholarly writing" },
+    { tier:"hard", word:"lugubrious",     pos:"adjective", phonetic:"luh-GOO-bree-us",       definition:"looking or sounding sad and dismal; mournful" },
+    { tier:"hard", word:"machiavellian",  pos:"adjective", phonetic:"mak-ee-uh-VEL-ee-un",  definition:"cunning, scheming, and unscrupulous, especially in politics" },
+    { tier:"hard", word:"manqué",         pos:"adjective", phonetic:"mon-KAY",               definition:"having failed to become what one might have been; unfulfilled" },
+    { tier:"hard", word:"meliorism",      pos:"noun",      phonetic:"MEE-lee-ur-iz-um",      definition:"the belief that the world can be made better by human effort" },
+    { tier:"hard", word:"metonymy",       pos:"noun",      phonetic:"mih-TON-ih-mee",        definition:"a figure of speech where a thing is referred to by the name of something associated with it" },
+    { tier:"hard", word:"munificent",     pos:"adjective", phonetic:"myoo-NIF-ih-sunt",      definition:"larger or more generous than is usual or necessary; bountiful" },
+    { tier:"hard", word:"nadir",          pos:"noun",      phonetic:"NAY-dur",               definition:"the lowest point in the fortunes of a person or organisation" },
+    { tier:"hard", word:"numinous",       pos:"adjective", phonetic:"NYOO-mih-nus",          definition:"having a strong religious or spiritual quality; indicating or suggesting the presence of a divinity" },
+    { tier:"hard", word:"obfuscate",      pos:"verb",      phonetic:"OB-fus-kayt",           definition:"to make unclear or confusing; to bewilder" },
+    { tier:"hard", word:"opprobrium",     pos:"noun",      phonetic:"uh-PROH-bree-um",       definition:"harsh criticism or censure; the public disgrace arising from shameful conduct" },
+    { tier:"hard", word:"ossify",         pos:"verb",      phonetic:"OS-ih-fy",              definition:"to become rigid or fixed in one's attitudes or opinions; to turn to bone" },
+    { tier:"hard", word:"pareidolia",     pos:"noun",      phonetic:"pair-ih-DOH-lee-uh",    definition:"the tendency to perceive a specific pattern or meaning in random stimuli" },
+  ];
+
+  // ── HINT SENTENCES ───────────────────────────────────────────────────
+  // One sentence per word that uses it in context without defining it.
+  const HINT_SENTENCES = {
+    // EASY
+    "empathy":       "She sat quietly beside him, not saying anything, just letting him know she understood.",
+    "paradox":       "The sign at the entrance read 'Do not read this sign' — and everyone stopped to read it.",
+    "catalyst":      "The new manager's arrival didn't cause the changes directly, but everything shifted once she was there.",
+    "apathy":        "He watched the news for a moment, then switched it off and went to make tea.",
+    "serendipity":   "She had gone to the bookshop to buy one novel and came home with the exact book she'd been searching for all year.",
+    "labyrinth":     "Every corridor in the old hospital looked the same, and the nurses warned new staff to leave early.",
+    "tenacious":     "Even after three rejections, she rewrote the application and sent it again.",
+    "hubris":        "He walked into the championship so certain of victory that he hadn't bothered to practice.",
+    "catharsis":     "By the end of the film, half the audience was quietly crying, and somehow everyone felt better for it.",
+    "oblivion":      "The village had existed for centuries before the flood — now no one could even name it.",
+    "eloquent":      "He rarely raised his voice, yet by the time he finished, the entire room was convinced.",
+    "zeitgeist":     "Looking back, the music, the fashion, the slang — it all screamed the same decade.",
+    "axiom":         "The instructor didn't argue the point; she simply wrote it on the board and moved on.",
+    "inertia":       "The committee had been 'considering' the proposal for three years without a single vote.",
+    "nuance":        "The translator paused — the original word had no exact match, only a feeling.",
+    "entropy":       "After years without maintenance, the once-grand estate had slowly become something else entirely.",
+    "rhetoric":      "The speech was thrilling to listen to, but by morning no one could recall what it had actually promised.",
+    "pensive":       "She stood at the window long after the car had disappeared around the corner.",
+    "vicarious":     "He'd never left the country, yet his walls were covered in maps and his shelves full of travel memoirs.",
+    "panacea":       "Every generation seems to discover a new food, drug, or habit that will, apparently, fix everything.",
+    "nostalgia":     "The smell of that sunscreen always takes her straight back to summers that felt endless.",
+    "ambiguous":     "His reply — 'we'll see' — left everyone unsure whether to be hopeful or worried.",
+    "melancholy":    "The last day of a holiday has its own particular weight that cheerfulness can't quite lift.",
+    "cynical":       "He listened to the charity pitch with a polite smile and then quietly moved on.",
+    "dilemma":       "She could tell her friend the truth about the dress or keep the peace — not both.",
+    "autonomy":      "He appreciated the role precisely because no one told him how to do it.",
+    "arbitrary":     "The rule about ties on Tuesdays had no explanation — it had simply always been that way.",
+    "volatile":      "You never quite knew which version of him would walk through the door.",
+    "pragmatic":     "She skipped the debate and just booked the cheaper flight.",
+    "resilient":     "Six months after the business collapsed, he had already launched a second one.",
+    "cliché":        "The speech was full of phrases she'd heard at every leaving party she'd ever attended.",
+    "irony":         "The fire station burned down on the same day it won a safety award.",
+    "surreal":       "She kept expecting someone to explain why there was a horse in the post office, but no one did.",
+    "verbose":       "His emails were legendary — three paragraphs to confirm a lunch booking.",
+    "cathartic":     "She'd been holding it together all week; the long run on Saturday morning fixed something she couldn't name.",
+    "eccentric":     "He kept a formal dinner service in the garden shed and served tea there in winter.",
+    "ambivalent":    "She accepted the promotion without quite managing a smile.",
+    "candid":        "He didn't say the presentation was bad — he said what he thought would make it good.",
+    "mundane":       "It was a Tuesday in March — nothing had happened, and nothing was going to.",
+    "absurd":        "The form required her to prove she existed before she could apply for an identity document.",
+    "profound":      "One sentence in the letter stayed with her for years after everything else had faded.",
+    "candour":       "He spoke without flattery or diplomacy, which made people uncomfortable and trust him more.",
+    "cynicism":      "She'd stopped voting, stopped donating, stopped expecting much from anyone in public life.",
+    "curt":          "'No' was all the reply said.",
+    "frugal":        "He kept the same coat for twenty years, rotating its buttons each winter to spread the wear.",
+    "gregarious":    "Within twenty minutes she knew everyone at the party, including the caterers.",
+    "placid":        "Nothing seemed to ruffle him — not the delay, not the noise, not the confusion.",
+    "vivid":         "The dream clung to her all morning, more present than the room around her.",
+    "naive":         "He'd handed over the password before he'd finished reading the email.",
+    "stoic":         "She carried the diagnosis alone for two weeks before telling anyone.",
+    "euphoria":      "The final whistle blew, and for a moment no one could quite believe what had just happened.",
+    "schadenfreude": "He tried not to smile when the loudest critic in the meeting was caught in the same mistake.",
+    "emulate":       "She studied every interview the director had ever given, then made her own film.",
+    "eloquence":     "She found the right word every time, and each sentence landed exactly where it was aimed.",
+    "skeptic":       "He nodded along, but his notebook remained closed.",
+    "bias":          "They both looked at the same data and reached very different conclusions.",
+    "virtue":        "He returned the wallet with everything still inside, then asked nothing in return.",
+    "absolution":    "She'd apologised, but what she was really waiting for was to feel forgiven.",
+    "ironic":        "The book on procrastination had been sitting unread on her desk for two years.",
+    "bliss":         "Warm bread, no plans, good light — she asked nothing more of the afternoon.",
+    "frantic":       "She'd lost the boarding pass and the gate was closing in eight minutes.",
+    "mediocre":      "The meal was neither memorable nor bad — it was simply eaten.",
+    "nostalgic":     "He kept the old playlist not because the songs were good, but because of when they were.",
+    "serene":        "She answered the complaint in the same steady tone she used for everything.",
+    "tension":       "They were perfectly polite to each other, which somehow made it worse.",
+    "wistful":       "He paused at the old photograph before carefully placing it face-down.",
+    "turmoil":       "The department had three managers in six months, and nobody's job had felt safe since.",
+    "whimsical":     "The café had named every sandwich after a weather event, for no particular reason.",
+    // MEDIUM
+    "mellifluous":   "She could have read the phone directory aloud and the audience would have stayed.",
+    "petrichor":     "He opened the window the moment it started, just to let it in.",
+    "liminal":       "The airport at 3am belongs to no particular day, no particular life.",
+    "ethereal":      "The morning mist made the valley look less like a place and more like a suggestion of one.",
+    "soliloquy":     "She'd been talking for five minutes before she noticed the rest of the table had gone quiet.",
+    "quixotic":      "He was convinced he could reform the planning system with a strongly worded letter.",
+    "idiosyncrasy":  "She always ate her meals in a particular order and became visibly unsettled when she couldn't.",
+    "ennui":         "Everything was fine — which somehow made it worse.",
+    "sycophant":     "Every idea the director had was, somehow, also the best idea the deputy had ever heard.",
+    "didactic":      "The novel seemed less interested in its characters than in making a point about society.",
+    "ineffable":     "She tried to explain it twice, then gave up and said 'you'd have to have been there'.",
+    "subterfuge":    "He booked the meeting room under a false name and told no one who was attending.",
+    "halcyon":       "People of a certain age always talk about that summer as though the weather was different then.",
+    "equanimity":    "She received the diagnosis, asked three questions, and thanked the doctor.",
+    "lassitude":     "He sat at his desk with a full cup of coffee and an empty morning, going nowhere.",
+    "sonder":        "He watched the bus pull away and wondered where every single person on it was actually going.",
+    "limerence":     "She'd checked her phone forty times since breakfast, and it had nothing to do with work.",
+    "chrysalism":    "She'd left three things half-done because the rain made staying in too comfortable to resist.",
+    "kenopsia":      "She walked through the school on a Sunday afternoon and felt it watching her.",
+    "apricity":      "He'd moved his chair three times to stay in the patch that kept moving across the floor.",
+    "vellichor":     "She wasn't looking for anything in particular, but she stayed for an hour anyway.",
+    "perspicuous":   "The manual was written by someone who actually wanted it to be read.",
+    "insouciant":    "She shrugged when they told her the flight was cancelled and ordered another coffee.",
+    "ephemeron":     "He kept the ticket stub knowing it would fall apart, and kept it anyway.",
+    "sanguine":      "He'd lost the account but was already talking about what came next.",
+    "torpor":        "She'd been meaning to reply to that email for eleven days.",
+    "vicissitude":   "The company had survived two recessions, a rebranding, and a CEO who went to prison.",
+    "propitious":    "Everything was lined up — the timing, the budget, the team — and she knew it.",
+    "trepidation":   "He'd rehearsed the conversation a hundred times and still hesitated at the door.",
+    "obstinate":     "She had been shown the evidence, acknowledged it, and continued as before.",
+    "corpulent":     "The chair groaned under him as he settled in for the meeting.",
+    "diffident":     "She had the best answer in the room and waited too long to say it.",
+    "acrimony":      "The divorce was finalised, but the conversation at the school gates never quite recovered.",
+    "ameliorate":    "The second round of talks didn't solve anything, but the tone was at least civil.",
+    "anodyne":       "The statement acknowledged concerns without actually addressing any of them.",
+    "byzantine":     "The expense form required approval from four departments, two of which no longer existed.",
+    "chicanery":     "The contract was technically legal and entirely dishonest.",
+    "circumspect":   "She read everything twice before agreeing to anything.",
+    "conflate":      "He kept treating the two problems as one, which made both of them worse.",
+    "contrite":      "He didn't just apologise — he was quiet for a long time first.",
+    "cupidity":      "He'd promised to donate a portion of the sale and had already revised that figure three times.",
+    "deference":     "The junior doctors waited for the consultant to speak before forming an opinion.",
+    "dissonance":    "The upbeat music playing while the redundancies were announced struck everyone as odd.",
+    "ebullient":     "She arrived at the meeting twenty minutes late and somehow lifted the entire room.",
+    "enervate":      "Three days of those meetings and she needed the whole weekend just to feel ordinary again.",
+    "languid":       "He moved through the hot afternoon as though the air itself were reluctant.",
+    "equivocate":    "She was asked a direct question and gave a very long answer.",
+    "fecund":        "The studio produced three albums, two films, and a novel in a single year.",
+    "felicitous":    "He found the exact word for it, and everyone agreed it was the right one.",
+    "garrulous":     "By the time the taxi arrived, the driver knew her mother's medical history.",
+    "hapless":       "He'd locked his keys in the car on the day his phone died.",
+    "ignominious":   "The resignation came after a press conference no one in the party wanted to discuss.",
+    "impetuous":     "She'd quit before she'd remembered she hadn't lined up anything else.",
+    "indolent":      "He'd been at the desk for three hours and produced a single sentence he then deleted.",
+    "intransigent":  "Every proposed compromise met the same wall.",
+    "inveterate":    "He'd smoked since sixteen, tried to stop a dozen times, and had long since stopped trying.",
+    "maudlin":       "After the third drink, every song became a reason to call an old friend.",
+    "mendacious":    "He gave a confident account of events that bore no relation to what had happened.",
+    "meretricious":  "The campaign looked stunning and said absolutely nothing.",
+    "obsequious":    "He laughed first and loudest at everything the CEO said.",
+    "perfidious":    "She had shared everything with him; he had shared it with their competitors.",
+    "perspicacious": "She spotted the flaw in the argument before the speaker had finished making it.",
+    "phlegmatic":    "He received the news — both kinds — with the same expression.",
+    "platitude":     "The speech was warmly received and immediately forgotten.",
+    "pliant":        "He'd agreed with everyone in the room and left with no idea what he actually thought.",
+    "precipitate":   "One leaked document started a chain of events that lasted six months.",
+    "prodigal":      "She'd spent the advance before the book was half finished.",
+    "querulous":     "He found something to complain about in every restaurant, hotel, and theatre he'd ever visited.",
+    "recalcitrant":  "The system refused every update and crashed whenever someone looked at it directly.",
+    "reticent":      "He spoke when spoken to and offered nothing further.",
+    "sagacious":     "She'd been right about the market twice before anyone else was even asking the question.",
+    "sanctimonious": "He donated publicly, forgave loudly, and made sure everyone noticed.",
+    "sycophancy":    "The meeting notes described every idea as 'brilliant' regardless of whose it was.",
+    "tendentious":   "The documentary was well-made and absolutely certain of its conclusion from the opening frame.",
+    "truculent":     "He arrived at the negotiation looking for reasons to walk out.",
+    "umbrage":       "She had mentioned it once, mildly, and he hadn't spoken to her for a week.",
+    "unctuous":      "He called everyone 'my friend' in a way that made them feel the opposite.",
+    "vapid":         "The interview lasted twenty minutes and contained no information whatsoever.",
+    "vitriolic":     "His review didn't critique the book — it went after the author.",
+    // HARD
+    "palimpsest":    "The city wall had been plastered over so many times that three different centuries showed through the cracks.",
+    "verisimilitude":"The set was so detailed that actors reported forgetting it wasn't real.",
+    "solipsism":     "He engaged with philosophy the way someone might pick up a mirror — always returning to the same face.",
+    "sophistry":     "The argument was airtight if you didn't look at where it started.",
+    "pyrrhic":       "They won the contract but spent twice its value fighting to keep it.",
+    "fugacious":     "The light through the leaves lasted about three seconds and she missed the photograph.",
+    "recondite":     "The footnote led to a source that had been cited eleven times and read by perhaps four people.",
+    "susurrus":      "He pressed his ear to the door and still couldn't make out a word.",
+    "noctilucent":   "They drove forty miles from the city and stood in a field just to see them.",
+    "tenebrism":     "The painting looked like faces emerging from a room where someone had just turned off all the lights.",
+    "acumen":        "She read the room in the first five minutes and had adjusted her pitch before the presentation started.",
+    "adumbrate":     "The memo didn't give details — it gestured toward a restructure and left everyone to fill in the gaps.",
+    "anamnesis":     "He described the landscape so precisely that his therapist wondered whether he'd truly invented it.",
+    "aporia":        "The philosopher concluded his lecture by demonstrating that the question could not be answered, including by him.",
+    "apposite":      "She found, in a novel written before her birth, a sentence that described exactly what she was feeling.",
+    "asperity":      "He thanked her for her feedback in a tone that did not suggest thanks.",
+    "atavism":       "The family's talent for cartography skipped three generations before reappearing, without explanation, in the youngest child.",
+    "bathetic":      "The ceremony honoured fifty years of service and concluded with a voucher for a local garden centre.",
+    "captious":      "He objected to the formatting before anyone had read the report.",
+    "casuistry":     "The committee spent two hours establishing that the rule technically didn't apply in this specific case.",
+    "celerity":      "She returned the call before the voicemail had finished playing.",
+    "chimerical":    "The proposal required three pieces of legislation, two elections, and the goodwill of people who would never agree.",
+    "clerisy":       "The journal was not widely read but was widely cited among those who read journals.",
+    "contumacious":  "He received the court order, read it, and did the thing again.",
+    "contumelious":  "The review was signed with his full name and his affiliation, as if daring anyone to respond.",
+    "crepuscular":   "The light at that hour made everything look borrowed from some better world.",
+    "defenestration":"The policy lasted three weeks before being removed in a way that avoided a formal vote.",
+    "deracinate":    "The new development replaced the street so thoroughly that even long-term residents got lost.",
+    "diaphanous":    "The curtain moved in the breeze and for a moment the light through it was almost too beautiful to name.",
+    "diegesis":      "The director was less interested in the story than in how the story was being told.",
+    "dysphoria":     "She couldn't point to anything wrong, which somehow made it harder to explain to anyone.",
+    "eldritch":      "The sound coming from the basement was rhythmic and shouldn't have been.",
+    "emollient":     "The statement was designed to calm rather than clarify, and succeeded at neither.",
+    "encomium":      "The introduction was so glowing that the speaker felt obliged to apologise for herself.",
+    "exiguous":      "The budget covered transport and one hotel night, and only if she shared a room.",
+    "fatuous":       "He laughed at his own joke for much longer than anyone else.",
+    "febrile":       "The week before the launch, the office had the atmosphere of a place about to do something irreversible.",
+    "fulgent":       "The chandeliers were switched on for the first time in years and the room looked briefly like another century.",
+    "gelid":         "She ran the tap until the glass fogged, then drank it in one go.",
+    "gnosis":        "He wasn't interested in the doctrine — he wanted to know what it felt like.",
+    "haecceity":     "Every copy of the printing was identical, yet the signed one felt entirely different to hold.",
+    "hebetude":      "He stared at the screen and could not make himself care what was on it.",
+    "hiraeth":       "She listened to the recording and felt something she didn't have an English word for.",
+    "hypnagogia":    "He saw the face clearly and reached for his notebook, but by the time he had it, the face was gone.",
+    "iconoclast":    "She spent her career dismantling arguments that had been considered settled.",
+    "imbricate":     "The scales of the fish caught the light differently at each angle.",
+    "impecunious":   "He ate well whenever someone else was paying, which was as often as he could arrange it.",
+    "inchoate":      "She had the feeling clearly; the words for it hadn't arrived yet.",
+    "inimical":      "The new policy was presented as neutral and managed to disadvantage almost everyone.",
+    "insuperable":   "Every solution created a problem that made the original one look manageable.",
+    "interpolate":   "Someone had added three sentences to the manuscript that hadn't been there in the morning.",
+    "interstice":    "The plant had found the gap between the paving stones and made use of it.",
+    "iridescent":    "The feather changed colour as she turned it, as if it couldn't settle on one answer.",
+    "jejune":        "The argument had been made before, by undergraduates, and answered before they'd finished making it.",
+    "lachrymose":    "He cried at adverts, at children's films, at long train journeys for no reason.",
+    "limn":          "She wrote the description once and came back to it five times, each time getting closer to the thing she meant.",
+    "logorrhea":     "The report had an executive summary of fourteen pages.",
+    "lucubrate":     "The footnotes took longer than the chapter they were attached to.",
+    "lugubrious":    "He delivered the good news as though he were reading out a sentence.",
+    "machiavellian": "She had never been seen to lie, and yet somehow always got what she wanted.",
+    "manqué":        "He'd wanted to be an architect, then a novelist, and had become, without quite deciding to, an accountant.",
+    "meliorism":     "She kept volunteering despite everything, on the grounds that something was better than nothing.",
+    "metonymy":      "The White House declined to comment — meaning, of course, that its occupant did.",
+    "munificent":    "The endowment covered not just the position but the research, the travel, and the assistant.",
+    "nadir":         "That particular Tuesday was not the worst of her life, but it felt close.",
+    "numinous":      "Standing there, she felt small in a way that wasn't frightening.",
+    "obfuscate":     "The terms and conditions were eleven thousand words long.",
+    "opprobrium":    "He resigned before the article was published, which suggested he had read it in advance.",
+    "ossify":        "The department hadn't changed its procedures since 1994 and was proud of this.",
+    "pareidolia":    "He'd seen a face in the wood grain every morning for six years and had named it Gerald.",
+  };
+
+  // ── TIER ROTATION ──────────────────────────────────────────────────────
+  // Pattern repeats every 7 days: E M H M E M H
+  // No two consecutive days share a tier; hard days are never adjacent.
+  const TIER_PATTERN = ['easy','medium','hard','medium','easy','medium','hard'];
+
+  // Split word bank into per-tier arrays (order preserved = deterministic)
+  const TIER_POOLS = { easy: [], medium: [], hard: [] };
+  // Deduplicate by word before bucketing
+  const _seen = new Set();
+  for (const w of WORDS) {
+    if (!_seen.has(w.word)) { _seen.add(w.word); TIER_POOLS[w.tier].push(w); }
+  }
+
+  /* ════════════════════════════════════════════════════
+   * CONSTANTS
+   * ════════════════════════════════════════════════════ */
+  // Use Eastern time so word changes at midnight ET (handles EST/EDT automatically)
+  function getEasternDayIndex() {
+    const now = new Date();
+    const etDateStr = now.toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); // "YYYY-MM-DD"
+    const [y, mo, d] = etDateStr.split('-').map(Number);
+    return Math.floor(Date.UTC(y, mo - 1, d) / 86400000);
+  }
+  const DAY_INDEX    = getEasternDayIndex(); // ET midnight-aligned day index
+  const LAUNCH_DAY   = 20568;                          // Apr 25 2026 = Day 1
+  const GAME_DAY     = Math.max(1, DAY_INDEX - LAUNCH_DAY + 1); // 1-indexed display day
+  const DAYS_SINCE_LAUNCH = Math.max(0, DAY_INDEX - LAUNCH_DAY); // clamp to 0 before launch
+  const TIER_SLOT  = ((DAYS_SINCE_LAUNCH % TIER_PATTERN.length) + TIER_PATTERN.length) % TIER_PATTERN.length; // always positive
+  const TODAY_TIER = TIER_PATTERN[TIER_SLOT] || 'easy'; // fallback to easy
+  const POOL       = TIER_POOLS[TODAY_TIER];
+  const WORD_INDEX = DAYS_SINCE_LAUNCH % POOL.length;   // starts at word 0 on launch day
+  const DAILY      = POOL[WORD_INDEX];
+
+  const TODAY_KEY    = `dictle_played_${DAY_INDEX}`;
+  const STREAK_KEY   = `dictle_streak`;
+  const LAST_DAY_KEY = `dictle_last_day`;
+
+  /* ════════════════════════════════════════════════════
+   * DOM REFS
+   * ════════════════════════════════════════════════════ */
+  const $  = id => document.getElementById(id);
+  const wordDisplay      = $('word-display');
+  const wordPos          = $('word-pos');
+  const wordPhonetic     = $('word-phonetic');
+  const dayLabel         = $('day-label');
+  const userInput        = $('user-input');
+  const btnSubmit        = $('btn-submit');
+  const errorBanner      = $('error-banner');
+  const resultsCard      = $('results-card');
+  const scoreNumber      = $('score-number');
+  const verdictText      = $('verdict-text');
+  const resultUserDef    = $('result-user-def');
+  const resultCorrectDef = $('result-correct-def');
+  const btnShare         = $('btn-share');
+  const alreadyPlayed    = $('already-played');
+  const apScore          = $('ap-score');
+  const rpEmoji          = $('rp-emoji');
+
+  let lastScore = null;
+
+  /* ════════════════════════════════════════════════════
+   * INIT
+   * ════════════════════════════════════════════════════ */
+  function initUI() {
+    const dotColors = { easy: '#4CAF50', medium: '#FFC107', hard: '#F44336' };
+    const tierDot   = `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${dotColors[TODAY_TIER]};margin-right:6px;"></span>`;
+    const tierText  = { easy: "Easy", medium: "Medium", hard: "Hard" }[TODAY_TIER];
+    dayLabel.innerHTML      = `${tierDot}Day ${GAME_DAY}&nbsp;&nbsp;·&nbsp;&nbsp;${tierText}`;
+    wordDisplay.textContent   = DAILY.word;
+    wordPhonetic.textContent  = DAILY.phonetic || '';
+    wordPos.textContent       = DAILY.pos;
+
+    // Populate passive hint lines
+    const hintEl = document.getElementById('word-hint');
+    const etymEl = document.getElementById('word-etym');
+    if (hintEl) hintEl.textContent = buildContextualClue();
+    if (etymEl) {
+      const etym = buildEtymologyClue();
+      etymEl.textContent = etym;
+      etymEl.style.display = etym ? '' : 'none';
+    }
+
+    const saved = localStorage.getItem(TODAY_KEY);
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        showAlreadyPlayed(data.score, data.userDef);
+        revealResults(data.score, data.userDef, false, data.feedback || '');
+        restoreHintState();
+      } catch {
+        localStorage.removeItem(TODAY_KEY);
+        btnSubmit.disabled = false;
+      }
+    } else {
+      btnSubmit.disabled = false;
+    }
+  }
+
+  /* ════════════════════════════════════════════════════
+   * HINTS — shown passively as word info lines
+   * ════════════════════════════════════════════════════ */
+  const wordHintEl = document.getElementById('word-hint');
+  const wordEtymEl = document.getElementById('word-etym');
+
+  function buildContextualClue() {
+    const scene = HINT_SENTENCES[DAILY.word];
+    if (scene) return scene;
+    const pos        = DAILY.pos;
+    const first      = DAILY.word[0].toUpperCase();
+    const len        = DAILY.word.length;
+    const defSnippet = DAILY.definition.split(/[,;]/)[0].trim();
+    return `This ${pos} starts with "${first}" and has ${len} letters. It relates to: ${defSnippet.toLowerCase()}.`;
+  }
+
+  function buildEtymologyClue() {
+    const etym = ETYMOLOGY[DAILY.word];
+    return etym || '';
+  }
+
+  function restoreHintState() {
+    // hints are always shown — nothing to restore
+  }
+  /* ════════════════════════════════════════════════════
+   * HINT 2 — etymology / word roots (-10 pts)
+   * ════════════════════════════════════════════════════ */
+  // ── ALTERNATE DEFINITIONS ────────────────────────────────────────────
+  // Extra reference phrasings per word fed to the semantic scorer.
+  // Add entries for any word where common paraphrases score poorly.
+  const ALT_DEFINITIONS = {
+    "solipsism":     ["the belief that only your own mind is real and others may not exist", "the idea that you can only be certain of your own consciousness", "a philosophy where the external world and other people cannot be proven to exist", "only my own thinking and experience can be known to be real"],
+    "paradox":       ["a statement that contradicts itself but may still be true", "something that seems impossible but turns out to be possible"],
+    "entropy":       ["the tendency of systems to become more disordered over time", "the gradual decline from order into chaos or randomness"],
+    "ephemeral":     ["something that lasts only a very short time", "fleeting; here one moment and gone the next"],
+    "liminal":       ["existing in a transitional state between two conditions", "on the threshold; in between two states or phases"],
+    "sonder":        ["the realisation that every stranger has a life as vivid and complex as your own", "becoming aware that other people have rich inner lives you know nothing about"],
+    "limerence":     ["an involuntary obsessive infatuation with another person", "being unable to stop thinking about someone you are fixated on romantically"],
+    "catharsis":     ["emotional release or relief, especially through art or drama", "a purging of built-up emotion that leaves you feeling cleansed"],
+    "hubris":        ["arrogance or excessive pride that leads to one's downfall", "overconfidence that invites punishment or disaster"],
+    "cognitive dissonance": ["the discomfort of holding two contradictory beliefs at once", "mental tension from believing two things that conflict"],
+    "schadenfreude": ["taking pleasure in someone else's misfortune", "feeling happy when something bad happens to another person"],
+    "laconic":       ["using very few words; brief and to the point", "a style of speaking or writing that is extremely concise"],
+    "diffident":     ["lacking confidence in oneself; shy and hesitant", "not assertive; tending to hold back due to self-doubt"],
+    "equanimity":    ["a calm and composed mental state, especially under stress", "mental steadiness; not being thrown off by difficulties"],
+    "obstinate":     ["stubbornly refusing to change one's position", "unwilling to give in even when faced with good reasons"],
+  };
+
+  const ETYMOLOGY = {
+    // Easy
+    "empathy":       "Greek em- (in) + pathos (feeling)",
+    "paradox":       "Greek para- (contrary to) + doxa (opinion)",
+    "catalyst":      "Greek katalysis (dissolution) from kata- (down) + lyein (to loosen)",
+    "apathy":        "Greek a- (without) + pathos (feeling)",
+    "serendipity":   "Coined 1754 by Horace Walpole from the Persian fairy tale 'The Three Princes of Serendip' (Sri Lanka)",
+    "labyrinth":     "Greek labyrinthos — possibly from Lydian labrys (double-headed axe), symbol of the Minoan palace at Knossos",
+    "tenacious":     "Latin tenax (holding fast) from tenere (to hold)",
+    "hubris":        "Greek hybris — originally an act of violence against a god; later appropriated as a term of excess pride",
+    "catharsis":     "Greek katharsis (cleansing) from kathairein (to purify)",
+    "oblivion":      "Latin oblivio from oblivisci (to forget)",
+    "eloquent":      "Latin eloquens from ex- (out) + loqui (to speak)",
+    "zeitgeist":     "German Zeit (time) + Geist (spirit)",
+    "axiom":         "Greek axioma (what is thought fitting) from axios (worthy)",
+    "inertia":       "Latin inertia (idleness) from iners (unskilled, idle) from in- + ars (skill)",
+    "nuance":        "French nuance (shade of colour) from nuer (to show shades of colour) from Latin nubes (cloud)",
+    "entropy":       "Greek en- (in) + tropē (a turning) — coined by Clausius 1865",
+    "rhetoric":      "Greek rhētorikē from rhētor (public speaker) from rhein (to speak)",
+    "pensive":       "Old French pensif from penser (to think) from Latin pensare (to weigh)",
+    "vicarious":     "Latin vicarius (substitute) from vicis (change, turn)",
+    "panacea":       "Greek panakeia from pan- (all) + akos (cure) — Panakeia was the Greek goddess of cure-alls",
+    "nostalgia":     "Greek nostos (homecoming) + algos (pain) — coined 1688 by Johannes Hofer to describe homesick soldiers",
+    "ambiguous":     "Latin ambiguus from ambigere (to wander about) from ambi- (both ways) + agere (to drive)",
+    "melancholy":    "Greek melan- (black) + kholē (bile) — from the ancient four-humour theory",
+    "cynical":       "Greek kynikos (dog-like) from kyōn (dog) — the Cynics lived ascetically, scorning convention",
+    "dilemma":       "Greek di- (two) + lemma (premise)",
+    "autonomy":      "Greek autos (self) + nomos (law)",
+    "arbitrary":     "Latin arbitrarius from arbiter (judge) — originally 'of a judge'",
+    "volatile":      "Latin volatilis (flying) from volare (to fly)",
+    "pragmatic":     "Greek pragma (deed, act) from prassein (to do)",
+    "resilient":     "Latin resilire (to spring back) from re- (back) + salire (to jump)",
+    "cliché":        "French cliché — the sound of a printing plate being cast; something stamped out repeatedly",
+    "irony":         "Greek eironeia (feigned ignorance) from eirōn (a dissembler)",
+    "surreal":       "French surréaliste from sur- (above, beyond) + réel (real) — coined by Apollinaire 1917",
+    "verbose":       "Latin verbosus from verbum (word) + -osus (full of)",
+    "cathartic":     "Greek kathartikos (able to cleanse) from kathairein (to purify) — see catharsis",
+    "eccentric":     "Greek ekkentros from ek- (out of) + kentron (centre)",
+    "ambivalent":    "Latin ambi- (both) + valere (to be strong)",
+    "candid":        "Latin candidus (white, pure, sincere) from candere (to shine) — originally described white-robed Roman candidates",
+    "mundane":       "Latin mundanus from mundus (world, universe)",
+    "absurd":        "Latin absurdus from ab- (away from) + surdus (deaf, dull)",
+    "profound":      "Latin profundus from pro- (before, forward) + fundus (bottom)",
+    "candour":       "Latin candor (brightness, purity) from candere (to shine)",
+    "cynicism":      "See cynical — the philosophy of the Cynics, who lived ascetically and scorned convention",
+    "curt":          "Latin curtus (shortened) — clipped, with something cut off",
+    "frugal":        "Latin frugalis from frux/frugis (fruit, produce)",
+    "gregarious":    "Latin gregarius from grex/gregis (flock, herd)",
+    "placid":        "Latin placidus from placere (to please)",
+    "vivid":         "Latin vividus from vivere (to live)",
+    "naive":         "French naïf from Latin nativus (native, natural)",
+    "stoic":         "Greek Stōikos — followers of Zeno who taught in the Stoa Poikilē (Painted Porch) in Athens",
+    "euphoria":      "Greek euphoros (easy to bear) from eu- (well) + pherein (to bear)",
+    "schadenfreude": "German Schaden (damage/harm) + Freude (joy)",
+    "emulate":       "Latin aemulari from aemulus (striving to equal) — to rival, to try to match",
+    "eloquence":     "See eloquent — the quality of speaking outwardly with force",
+    "skeptic":       "Greek skeptikos (inquiring) from skeptesthai (to look, consider) — one who examines before accepting",
+    "bias":          "Old French biais (slant, diagonal) — a diagonal cut in cloth that causes it to pull to one side",
+    "virtue":        "Latin virtus (excellence, moral strength) from vir (man) — originally 'manliness', then moral excellence",
+    "whimsical":     "Origin uncertain; possibly from whim-wham (a fanciful trifle, 16th c.) — given to fanciful notions",
+    "ephemeral":     "Greek ephēmeros from epi- (on) + hēmera (day)",
+    "solitude":      "Latin solitudo from solus (alone)",
+    "empathetic":    "See empathy — Greek em- (in) + pathos (feeling)",
+    "laconic":       "Greek Lakōnikos — of the Laconians (Spartans), known for terse, clipped speech",
+    "enigmatic":     "Greek ainigma (riddle) from ainissesthai (to speak in riddles) from ainos (fable)",
+    "aesthetic":     "Greek aisthētikos (perceptive) from aisthānesthai (to perceive)",
+    "dichotomy":     "Greek dichotomia from dicha (in two) + temnein (to cut)",
+    "euphemism":     "Greek euphēmismos from eu- (good) + phēmē (speech)",
+    "apocryphal":    "Greek apokryphos (hidden away) from apo- (away) + kryptein (to hide)",
+    "tangential":    "Latin tangens (touching) from tangere (to touch)",
+    "hypocrite":     "Greek hypokritēs (stage actor) from hypo- (under) + krinein (to judge)",
+    "anecdote":      "Greek anekdota (unpublished things) from an- (not) + ekdotos (published)",
+
+    // Medium
+    "cupidity":      "Latin cupiditas from cupidus (desirous) from cupere (to desire) — shares its root with Cupid",
+    "deference":     "Latin deferre (to carry down, yield) from de- (down) + ferre (to carry)",
+    "dissonance":    "Latin dissonantia from dis- (apart) + sonare (to sound)",
+    "ebullient":     "Latin ebullire (to bubble up) from e- (out) + bullire (to boil)",
+    "enervate":      "Latin enervare from e- (out of) + nervus (sinew, nerve)",
+    "languid":       "Latin languidus from languere (to be faint)",
+    "equivocate":    "Latin aequivocus (of equal voice) from aequi- (equal) + vox (voice)",
+    "fecund":        "Latin fecundus (fruitful) from fetus (offspring) — producing abundantly",
+    "felicitous":    "Latin felicitas (happiness) from felix (happy, fruitful) — aptly chosen, happily expressed",
+    "garrulous":     "Latin garrulus from garrire (to chatter)",
+    "hapless":       "Old Norse happ (luck, chance) + -less",
+    "ignominious":   "Latin ignominia from in- (not) + nomen (name) — stripped of one's good name",
+    "impetuous":     "Latin impetuosus from impetus (attack, force) from in- + petere (to rush at) — rushing violently",
+    "indolent":      "Latin indolens from in- (not) + dolere (to feel pain) — feeling no pain; hence, at ease, lazy",
+    "intransigent":  "Spanish intransigente from in- (not) + transigir (to compromise) — refusing to cross over",
+    "inveterate":    "Latin inveteratus from in- + vetus/veteris (old) — made old; long-established",
+    "maudlin":       "Mary Magdalene, often depicted weeping — 'Maudlin' was the medieval English pronunciation",
+    "mendacious":    "Latin mendax (lying) from mendum (fault, defect) — prone to faults or lies",
+    "meretricious":  "Latin meretrix (prostitute) from merere (to earn) — earned through charm rather than worth",
+    "obsequious":    "Latin obsequium (compliance) from ob- (toward) + sequi (to follow) — following too closely",
+    "perfidious":    "Latin perfidiosus from perfidia from per- (through, away) + fides (faith) — faith broken through",
+    "perspicacious": "Latin perspicax from perspicere (to see through clearly) — seeing through to the truth",
+    "phlegmatic":    "Greek phlegma (flame, phlegm) — the cold, moist humour thought to cause calmness and sluggishness",
+    "platitude":     "French platitude from plat (flat) — a flat, lifeless remark",
+    "pliant":        "French pliant from plier (to bend) from Latin plicare — easily bent",
+    "precipitate":   "Latin praecipitare from praeceps (headlong) from prae- (before) + caput (head) — headfirst",
+    "prodigal":      "Latin prodigus (wasteful) from prodigere (to drive away) from pro- + agere (to drive) — driving away one's wealth",
+    "querulous":     "Latin querulus from queri (to complain) — full of complaint",
+    "recalcitrant":  "Latin recalcitrare (to kick back) from re- + calx (heel) — kicking back with the heel",
+    "reticent":      "Latin reticens from reticere (to keep silent) from re- + tacere (to be silent)",
+    "sagacious":     "Latin sagax (keen-scented) from sagire (to perceive keenly) — sharp-nosed; keenly perceptive",
+    "sanctimonious": "Latin sanctimonia (sacredness) from sanctus (holy) — performing holiness ostentatiously",
+    "sycophancy":    "Greek sykophantēs — possibly from sykon (fig) + phainein (to show); a fig-informer; one who exposes",
+    "tendentious":   "Medieval Latin tendentiosus from tendere (to stretch toward) — stretched toward a conclusion",
+    "truculent":     "Latin truculentus from trux (fierce, savage) — savagely fierce",
+    "umbrage":       "Latin umbra (shadow) via French ombrage — originally 'shade'; then 'suspicion cast by a shadow'",
+    "unctuous":      "Latin unctuosus from unctum (ointment) from ungere (to anoint) — oily, greasy, slippery",
+    "vapid":         "Latin vapidus (flat, lifeless) from vapor (steam) — like steam that has gone flat",
+    "vitriolic":     "Medieval Latin vitriolum (glassy mineral) from vitrum (glass) — biting like acid",
+
+    // Hard
+    "palimpsest":    "Greek palimpsēstos from palin (again) + psēstos (scraped) — a scraped tablet written on again",
+    "verisimilitude":"Latin verisimilitudo from verus (true) + similis (like) + -tudo — the appearance of being true",
+    "solipsism":     "Latin solus (alone) + ipse (self) + -ism",
+    "sophistry":     "Greek sophistēs (expert, one who makes a living by wisdom) from sophos (wise) — wisdom used to deceive",
+    "pyrrhic":       "From Pyrrhus of Epirus, whose 279 BC victory over Rome cost so many men it amounted to defeat",
+    "fugacious":     "Latin fugax (fleeting) from fugere (to flee) — fleeing, quick to vanish",
+    "recondite":     "Latin reconditus from re- + condere (to put away, hide) — stored away, hidden from view",
+    "susurrus":      "Latin susurrus — an onomatopoeia; the word itself sounds like a whisper or murmur",
+    "noctilucent":   "Latin nox/noctis (night) + lucens (shining) from lucere (to shine) — shining in the night",
+    "tenebrism":     "Latin tenebrae (darkness, shadows) — a painting technique of extreme shadow",
+    "acumen":        "Latin acumen from acuere (to sharpen) from acus (needle) — the point of a needle; mental sharpness",
+    "adumbrate":     "Latin adumbrare from ad- (toward) + umbra (shadow) — to cast a shadow of; to outline faintly",
+    "anamnesis":     "Greek anamnēsis (a calling to mind) from ana- (back) + mimnēskein (to recall)",
+    "aporia":        "Greek aporia (difficulty, puzzle) from a- (without) + poros (passage) — a state without a way through",
+    "apposite":      "Latin appositus from apponere (to put near) from ad- + ponere (to place) — aptly placed",
+    "asperity":      "Latin asperitas from asper (rough) — roughness of surface or tone",
+    "atavism":       "Latin atavus (great-great-great-grandfather) from at- + avus (grandfather) — reappearance of an ancestor",
+    "bathetic":      "Greek bathys (deep) — the comic anticlimax of sinking from the sublime to the ridiculous",
+    "captious":      "Latin captiosus from captio (a taking) from capere (to take) — finding fault, catching people out",
+    "casuistry":     "Latin casus (case, fall) from cadere (to fall) — reasoning about particular cases; often tortuous",
+    "celerity":      "Latin celeritas from celer (swift) — swiftness",
+    "chimerical":    "Greek khimaira (a fire-breathing monster: lion, goat, serpent) — a fantastical, impossible thing",
+    "clerisy":       "German Klerisei from Greek klēros (lot, inheritance) — those who inherited learning",
+    "contumacious":  "Latin contumax from con- (intensive) + tumere (to swell) — swollen with defiance",
+    "contumelious":  "Latin contumelia (insult) possibly from con- + tumere (to swell) — swollen with insolence",
+    "crepuscular":   "Latin crepusculum (twilight) from creper (dusky, uncertain) — of uncertain, dusky light",
+    "defenestration":"Latin de- (down from) + fenestra (window) — the act of throwing from a window",
+    "deracinate":    "French déraciner from dé- (away) + racine (root) from Latin radix — to uproot",
+    "diaphanous":    "Greek diaphanēs from dia- (through) + phainein (to show) — showing through; transparent",
+    "diegesis":      "Greek diēgēsis (narrative) from diēgeisthai (to narrate) from dia- + hēgeisthai (to lead)",
+    "dysphoria":     "Greek dysphoria from dys- (bad, difficult) + pherein (to bear) — difficult to bear; a state of unease",
+    "eldritch":      "Old English el- (strange, foreign) + rice (realm) — of a strange or foreign realm; uncanny",
+    "emollient":     "Latin emollire (to soften) from e- + mollis (soft) — softening, soothing",
+    "encomium":      "Greek enkōmion from en- (in) + kōmos (revel, festivity) — a song of praise at a festival",
+    "exiguous":      "Latin exiguus from exigere (to weigh out) from ex- + agere (to drive) — weighed out sparingly",
+    "fatuous":       "Latin fatuus (foolish, insipid) — related to infatuation; vapidly foolish",
+    "febrile":       "Latin febrilis from febris (fever) — of or like a fever; feverishly excited",
+    "fulgent":       "Latin fulgens (shining) from fulgere (to flash, to shine) — brilliantly bright",
+    "gelid":         "Latin gelidus from gelu (frost, cold) — icy cold",
+    "gnosis":        "Greek gnōsis (knowledge) from gignōskein (to know) — direct experiential knowledge of the divine",
+    "haecceity":     "Medieval Latin haecceitas from haec (this, feminine) — coined by Duns Scotus: the 'thisness' of a thing",
+    "hebetude":      "Latin hebetudo from hebes/hebetis (blunt, dull) — mental dullness",
+    "hiraeth":       "Welsh: hir (long) + aeth (grief, longing) — untranslatable; longing for a home that may not exist",
+    "hypnagogia":    "Greek hypnos (sleep) + agōgos (leading) from agein (to lead) — leading into sleep",
+    "iconoclast":    "Greek eikōn (image) + klastēs (breaker) from klaein (to break) — breaker of sacred images",
+    "imbricate":     "Latin imbricatus from imbrex (roof tile) from imber (rain) — overlapping like roof tiles in the rain",
+    "impecunious":   "Latin im- (not) + pecuniosus (wealthy) from pecunia (money) from pecus (cattle) — without cattle (wealth)",
+    "inchoate":      "Latin inchoatus from inchoare (to begin) — just begun; not yet fully formed",
+    "inimical":      "Latin inimicalis from inimicus (enemy) from in- + amicus (friend) — unfriendly; like an enemy",
+    "insuperable":   "Latin insuperabilis from in- + superare (to overcome) from super (over) — not able to be surmounted",
+    "interpolate":   "Latin interpolare from inter- (between) + -polare (to polish, to alter) — to insert something between",
+    "interstice":    "Latin interstitium from inter- (between) + sistere (to stand) — a small gap where things stand apart",
+    "iridescent":    "Greek Iris (goddess of the rainbow) + -escent (becoming) — becoming rainbow-coloured",
+    "jejune":        "Latin jejunus (fasting, empty) — originally 'not filling'; later 'intellectually empty'",
+    "lachrymose":    "Latin lacrima (tear) from Greek dakry — relating to tears; tearful",
+    "limn":          "Old French luminer from Latin luminare (to illuminate) — originally to illuminate manuscripts",
+    "logorrhea":     "Greek logos (word) + rhoia (flow) from rhein (to flow) — a flow of words",
+    "lucubrate":     "Latin lucubrare (to work by lamplight) from lux/lucis (light) — late-night scholarly work",
+    "lugubrious":    "Latin lugubris from lugere (to mourn) — mournful, dismal",
+    "machiavellian": "From Niccolò Machiavelli (1469–1527) whose 'The Prince' described cunning political strategy",
+    "manqué":        "French manqué from manquer (to lack, to fail) — having fallen short of one's intended role",
+    "meliorism":     "Latin melior (better) + -ism — the belief that the world can be made better by human effort",
+    "metonymy":      "Greek metōnymia from meta- (change) + onoma (name) — a change of name; a related word stands in",
+    "munificent":    "Latin munificus from munus (gift, duty) + facere (to make) — making gifts; extremely generous",
+    "nadir":         "Arabic naẓīr (opposite) from naẓīr as-samt (opposite the zenith) — the lowest point",
+    "numinous":      "Latin numen (divine will, nod of the gods) from nuere (to nod) — the nodding presence of a god",
+    "obfuscate":     "Latin obfuscare from ob- (over) + fuscus (dark) — to darken over; to obscure",
+    "opprobrium":    "Latin opprobrium from ob- (against) + probrum (shameful act) — disgrace, public reproach",
+    "ossify":        "Latin os/ossis (bone) + facere (to make) — to turn to bone; to become rigid",
+    "pareidolia":    "Greek para- (beside, beyond) + eidōlon (image, form) — perceiving a form in something else",
+
+    // Missing easy words
+    "absolution":    "Latin absolutio from absolvere (to set free) from ab- + solvere (to loosen) — a loosening from guilt",
+    "bliss":         "Old English bliss, blīths from blīthe (blithe, joyful) — a state of perfect joyfulness",
+    "frantic":       "Old French frenetique from Latin phreneticus from Greek phrenitis (delirium) — frenzy of the mind",
+    "ironic":        "Greek eirōnikos from eirōneia (feigned ignorance)",
+    "mediocre":      "Latin mediocris from medius (middle) + ocris (rugged mountain)",
+    "nostalgic":     "See nostalgia — Greek nostos (homecoming) + algos (pain); adjectival form coined later",
+    "serene":        "Latin serenus (clear, unclouded) — of weather: bright and calm; later of temperament",
+    "tension":       "Latin tensio from tendere (to stretch)",
+    "turmoil":       "Origin uncertain; possibly from Old French tremouille (mill hopper) — a turbulent, grinding confusion",
+    "wistful":       "Probably from obsolete wistly (attentively) — gazing longingly and with quiet yearning",
+
+    // Missing medium words
+    "acrimony":      "Latin acrimonia from acer (sharp, pungent)",
+    "ameliorate":    "Latin meliorare (to make better) from melior (better) from mel (honey)",
+    "anodyne":       "Greek anōdynos from an- (without) + odynē (pain)",
+    "apricity":      "Latin apricus (warmed by the sun) from aperire (to open) — open to the sun's warmth",
+    "byzantine":     "From Byzantium (Constantinople) — the Eastern Roman Empire's notoriously complex court bureaucracy",
+    "chicanery":     "French chicane (legal trickery) from chicaner (to quibble) — petty deception; legal trickery",
+    "chrysalism":    "Greek chrysalis (golden shell of a pupa) + -ism — coined by John Koenig; the cocoon-like comfort indoors",
+    "circumspect":   "Latin circumspectus from circum- (around) + specere (to look)",
+    "conflate":      "Latin conflare (to blow together, to fuse) from con- + flare (to blow)",
+    "contrite":      "Latin contritus (worn down) from conterere (to grind) from con- + terere (to rub)",
+    "corpulent":     "Latin corpulentus from corpus (body) + -ulentus (full of)",
+    "didactic":      "Greek didaktikos (apt at teaching) from didaskein (to teach)",
+    "diffident":     "Latin diffidere (to distrust) from dis- + fidere (to trust)",
+    "ennui":         "French ennui from Old French enui from anuier (to annoy, bore) from Latin inodiare (to make hateful) — weary boredom",
+    "ephemeron":     "Greek ephēmeron, neuter of ephēmeros (lasting a day) from epi- (on) + hēmera (day) — a one-day thing",
+    "equanimity":    "Latin aequanimitas from aequus (equal) + animus (mind)",
+    "ethereal":      "Latin aetherius from Greek aitherios from aithēr (upper air)",
+    "halcyon":       "Greek alkyon (kingfisher) — the bird was fabled to nest on a calm sea, charming the winds to peace",
+    "idiosyncrasy":  "Greek idiosynkrasia from idios (own) + synkrasis (mixture)",
+    "ineffable":     "Latin ineffabilis from in- + effabilis (speakable) from effari (to speak out)",
+    "insouciant":    "French insouciant from in- + soucier (to trouble) from Latin sollicitare (to agitate)",
+    "kenopsia":      "Greek kenos (empty) + opsis (sight) — coined by John Koenig; the eerie feeling of an empty familiar place",
+    "lassitude":     "Latin lassitudo from lassus (weary)",
+    "limerence":     "Coined 1977 by psychologist Dorothy Tennov from no classical root — a neologism for obsessive infatuation",
+    "liminal":       "Latin limen/liminis (threshold)",
+    "mellifluous":   "Latin mellifluus from mel/mellis (honey) + fluere (to flow)",
+    "obstinate":     "Latin obstinatus from obstinare (to persist) from ob- + stare (to stand)",
+    "perspicuous":   "Latin perspicuus from perspicere (to see through) from per- + specere (to look)",
+    "petrichor":     "Greek petra (stone) + ichor (the fluid in gods' veins) — coined 1964 by Bear & Thomas for rain-on-stone scent",
+    "propitious":    "Latin propitius (well-disposed, favourable) from pro- (for) + petere (to seek)",
+    "quixotic":      "From Don Quixote, Cervantes' 1605 novel — the impractical knight who tilted at windmills",
+    "sanguine":      "Latin sanguineus from sanguis (blood) — associated with the sanguine humour in ancient medicine",
+    "soliloquy":     "Latin soliloquium from solus (alone) + loqui (to speak)",
+    "sonder":        "Coined by John Koenig (Dictionary of Obscure Sorrows) — no classical root; invented from German sonder- (special)",
+    "subterfuge":    "Latin subterfugere (to flee secretly) from subter- (beneath) + fugere (to flee)",
+    "sycophant":     "Greek sykophantēs from sykon (fig) + phainein (to show) — possibly 'fig-shower'; origin debated",
+    "torpor":        "Latin torpor from torpere (to be numb or sluggish)",
+    "trepidation":   "Latin trepidatio from trepidare (to hurry anxiously) from trepidus (alarmed)",
+    "vellichor":     "Coined by John Koenig (Dictionary of Obscure Sorrows) — blend of vellum + ichor; the mood of used bookshops",
+    "vicissitude":   "Latin vicissitudo from vicis (change, turn)",
+  };
+
+  /* ════════════════════════════════════════════════════
+   * SCORING ENGINE — Claude API (/api/score on Vercel)
+   *
+   * Sends the player's answer + the correct definition to
+   * the Vercel serverless function, which calls Claude and
+   * returns a 0–100 score + one-line feedback.
+   * Falls back to localFallbackScore() if the API is
+   * unreachable or returns an error.
+   * ════════════════════════════════════════════════════ */
+
+  async function computeScore(userText) {
+    const trimmed = userText.trim();
+    if (!trimmed) return { score: 0, feedback: 'No definition entered.' };
+
+    const wordCount = trimmed.split(/\s+/).filter(Boolean).length;
+    if (trimmed.toLowerCase().includes(DAILY.word.toLowerCase()) && wordCount <= 3) {
+      return { score: 0, feedback: 'Try to actually define it!' };
+    }
+
+    try {
+      const res = await fetch('/api/score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          word:              DAILY.word,
+          pos:               DAILY.pos,
+          userDefinition:    trimmed,
+          correctDefinition: DAILY.definition,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `API error ${res.status}`);
+      }
+
+      const data = await res.json();
+      let score = Math.round(Math.max(0, Math.min(100, Number(data.score))));
+
+      return { score, feedback: data.feedback || feedbackLine(score) };
+
+    } catch (e) {
+      console.warn('API scoring failed, falling back:', e);
+      let score = localFallbackScore(trimmed);
+      score = Math.max(0, Math.min(100, score));
+      return { score, feedback: feedbackLine(score) };
+    }
+  }
+
+  /* ── Local keyword fallback scorer (used when /api/score is unreachable) ── */
+  function localFallbackScore(userText) {
+    const normalize = s => s.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
+    const tokenize  = s => normalize(s).split(/\s+/).filter(Boolean);
+
+    const userTokens    = new Set(tokenize(userText));
+    const correctTokens = tokenize(DAILY.definition);
+
+    // Stop-words to ignore in overlap calculation
+    const STOP = new Set(['a','an','the','of','or','to','in','is','are','was','be','by','as','for','its','it','that','which','and','with','not','so','but','on','at','from','this']);
+
+    const meaningful = correctTokens.filter(t => !STOP.has(t) && t.length > 2);
+    if (!meaningful.length) return 20; // can't score, give partial credit
+
+    let hits = 0;
+    for (const token of meaningful) {
+      // exact match or user word contains/is contained by correct token (handles stemming)
+      if (userTokens.has(token) || [...userTokens].some(u => u.includes(token) || token.includes(u))) hits++;
+    }
+
+    const overlap = hits / meaningful.length;
+
+    // Also check ALT_DEFINITIONS for this word
+    const alts = ALT_DEFINITIONS[DAILY.word] || [];
+    let bestAltOverlap = 0;
+    for (const alt of alts) {
+      const altTokens = tokenize(alt).filter(t => !STOP.has(t) && t.length > 2);
+      if (!altTokens.length) continue;
+      let altHits = 0;
+      for (const t of altTokens) {
+        if (userTokens.has(t) || [...userTokens].some(u => u.includes(t) || t.includes(u))) altHits++;
+      }
+      bestAltOverlap = Math.max(bestAltOverlap, altHits / altTokens.length);
+    }
+
+    const best = Math.max(overlap, bestAltOverlap);
+    // Scale: 0% overlap → 5pts, 100% overlap → 85pts (local scorer is conservative)
+    return Math.round(5 + best * 80);
+  }
+
+  function feedbackLine(score) {
+    if (score >= 88) return 'Excellent — you nailed it.';
+    if (score >= 70) return 'Great — got the core idea.';
+    if (score >= 50) return 'Good effort — close to the mark.';
+    if (score >= 30) return 'Partially there — check the correct definition.';
+    if (score >   0) return 'Not quite — see the correct definition below.';
+    return 'Way off — check the correct definition below.';
+  }
+
+
+
+  /* ════════════════════════════════════════════════════
+   * HELPERS
+   * ════════════════════════════════════════════════════ */
+  function getVerdict(score, feedback) {
+    if (feedback) return feedback;
+    if (score >= 88) return "✦ Nailed it";
+    if (score >= 70) return "⬆ Great definition";
+    if (score >= 50) return "◈ Close enough";
+    if (score >= 30) return "▽ Partially correct";
+    return "✕ Off the mark";
+  }
+
+  function scoreColor(score) {
+    if (score >= 65) return 'var(--good)';
+    if (score >= 40) return 'var(--mid)';
+    return 'var(--bad)';
+  }
+
+  function scoreToEmoji(score) {
+    if (score >= 90) return '🤯';
+    if (score >= 70) return '😌';
+    if (score >= 50) return '😅';
+    return '💀';
+  }
+
+  /* ════════════════════════════════════════════════════
+   * REVEAL RESULTS
+   * ════════════════════════════════════════════════════ */
+  function revealResults(score, userDef, animate = true, feedback = '') {
+    resultUserDef.textContent    = userDef;
+    resultCorrectDef.textContent = DAILY.definition;
+    verdictText.textContent      = getVerdict(score, feedback);
+    rpEmoji.textContent          = scoreToEmoji(score);
+    resultsCard.style.display    = 'block';
+    resultsCard.classList.add('visible');
+    lastScore = score;
+
+    // Dynamic arc: curve depth and color reflect the score
+    // Low score = shallow/flat arc (sad), high score = deep happy curve
+    const arcPath = document.querySelector('#result-arc-wrap path');
+    if (arcPath) {
+      const arcColor = score >= 65 ? 'var(--good)' : score >= 40 ? 'var(--mid)' : 'var(--bad)';
+      // Arc is always a smile — width grows with score
+      // score 0 → narrow smile (x range 35–85), score 100 → wide smile (x range 5–115)
+      const x1 = 35 - (score / 100) * 30;
+      const x2 = 85 + (score / 100) * 30;
+      const cy = 28; // fixed gentle curve depth
+      arcPath.setAttribute('d', `M${x1} 8 Q60 ${cy} ${x2} 8`);
+      arcPath.setAttribute('stroke', arcColor);
+    }
+
+    if (animate) {
+      scoreNumber.textContent = 0;
+      let current = 0;
+      const step = Math.max(1, Math.ceil(score / 50));
+      const timer = setInterval(() => {
+        current = Math.min(current + step, score);
+        scoreNumber.textContent = current;
+        if (current >= score) { clearInterval(timer); }
+      }, 20);
+    } else {
+      scoreNumber.textContent = score;
+    }
+  }
+
+  function showAlreadyPlayed(score, userDef) {
+    alreadyPlayed.style.display = 'block';
+    apScore.textContent         = `${score}% match`;
+    userInput.value             = userDef;
+    userInput.disabled          = true;
+    btnSubmit.disabled          = true;
+  }
+
+  function showError(msg) {
+    errorBanner.textContent    = `⚠ ${msg}`;
+    errorBanner.style.display  = 'block';
+    btnSubmit.textContent      = 'Try again';
+    btnSubmit.disabled         = false;
+    userInput.disabled         = false;
+  }
+
+  function updateStreak() {
+    const lastDay = parseInt(localStorage.getItem(LAST_DAY_KEY) || '0', 10);
+    let streak    = parseInt(localStorage.getItem(STREAK_KEY)   || '0', 10);
+
+    if      (lastDay === DAY_INDEX - 1) streak += 1;
+    else if (lastDay !== DAY_INDEX)     streak  = 1;
+
+    localStorage.setItem(STREAK_KEY,    streak);
+    localStorage.setItem(LAST_DAY_KEY,  DAY_INDEX);
+  }
+
+  /* ════════════════════════════════════════════════════
+   * TRY-AGAIN STATE
+   * ════════════════════════════════════════════════════ */
+  const MAX_ATTEMPTS = 1;
+  let attemptCount   = 0;   // how many times submitted today
+  let pendingScore   = null; // score waiting to be locked in
+  let pendingResult  = null; // { score, userDef, feedback, hints }
+
+  const scoreReveal       = document.getElementById('score-reveal');
+  const revealScoreEl     = document.getElementById('reveal-score');
+  const revealWordEl      = document.getElementById('reveal-word');
+  const revealActionsEl   = document.getElementById('reveal-actions');
+  const revealAttemptEl   = document.getElementById('reveal-attempt-counter');
+  const revealWarnEl      = document.getElementById('reveal-warn');
+  const btnLock           = document.getElementById('btn-lock');
+
+
+  /* ── Show the full-screen score reveal ── */
+  function showScoreReveal(score) {
+    revealWordEl.textContent  = DAILY.word;
+    revealScoreEl.textContent = 0;
+    revealActionsEl.classList.remove('visible');
+    revealAttemptEl.textContent = '';
+
+    // Reset arc
+    const revealArc = document.getElementById('reveal-arc');
+    revealArc.classList.remove('visible');
+
+    scoreReveal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    // Dramatic count-up: cubic ease-out, fast start → slow landing
+    const duration = 2000; // ms total
+    const startTime = performance.now();
+
+    function easeOut(t) {
+      return 1 - Math.pow(1 - t, 3);
+    }
+
+    function tick(now) {
+      const elapsed  = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased    = easeOut(progress);
+      const display  = Math.round(eased * score);
+
+      revealScoreEl.textContent = display;
+
+      if (progress < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        revealScoreEl.textContent = score;
+        // Arc animates in and reflects the score
+        const revealArcPath = revealArc.querySelector('path');
+        if (revealArcPath) {
+          const arcColor = score >= 65 ? 'var(--good)' : score >= 40 ? 'var(--mid)' : 'var(--bad)';
+          const x1 = 35 - (score / 100) * 30;
+          const x2 = 85 + (score / 100) * 30;
+          const cy = 28;
+          revealArcPath.setAttribute('d', `M${x1} 8 Q60 ${cy} ${x2} 8`);
+          revealArcPath.setAttribute('stroke', arcColor);
+        }
+        setTimeout(() => revealArc.classList.add('visible'), 120);
+        // Buttons appear after comfortable pause
+        setTimeout(() => revealActionsEl.classList.add('visible'), 480);
+      }
+    }
+
+    requestAnimationFrame(tick);
+  }
+
+  /* ── Lock it in → dismiss overlay, show full results ── */
+  function lockItIn() {
+    scoreReveal.classList.add('fade-out');
+    scoreReveal.classList.remove('active');
+    document.body.style.overflow = '';
+
+    const prev = (() => { try { return JSON.parse(localStorage.getItem(TODAY_KEY) || '{}'); } catch { return {}; } })();
+    const bestResult = (prev.score !== undefined && prev.score > pendingResult.score)
+      ? { ...prev, attempts: attemptCount }
+      : { ...pendingResult, attempts: attemptCount };
+
+    bestResult.hintUsed  = hintUsed  || prev.hintUsed  || false;
+    bestResult.hint2Used = hint2Used || prev.hint2Used || false;
+
+    localStorage.setItem(TODAY_KEY, JSON.stringify(bestResult));
+    saveHistory(bestResult.score);
+    updateStreak();
+
+    // Wait for overlay fade before revealing results
+    setTimeout(() => {
+      scoreReveal.classList.remove('fade-out');
+      revealResults(bestResult.score, bestResult.userDef, false, bestResult.feedback);
+      showAlreadyPlayed(bestResult.score, bestResult.userDef);
+      setTimeout(() => resultsCard.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+    }, 350);
+  }
+
+  /* ── Try again → dismiss overlay, reset input ── */
+  function tryAgain() {
+    scoreReveal.classList.remove('active');
+    document.body.style.overflow = '';
+
+    // Reset input card
+    userInput.value             = '';
+    userInput.disabled          = false;
+    userInput.style.borderColor = '';
+    btnSubmit.disabled          = false;
+    btnSubmit.textContent       = 'Submit definition';
+    errorBanner.style.display   = 'none';
+
+    userInput.focus();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  btnLock.addEventListener('click', lockItIn);
+
+  // Dismiss on back button / escape
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && scoreReveal.classList.contains('active')) lockItIn();
+  });
+
+  /* ════════════════════════════════════════════════════
+   * SUBMIT
+   * ════════════════════════════════════════════════════ */
+  btnSubmit.addEventListener('click', async () => {
+    const userDef = userInput.value.trim();
+
+    if (!userDef) {
+      userInput.style.borderColor = 'var(--bad)';
+      setTimeout(() => { userInput.style.borderColor = ''; }, 800);
+      return;
+    }
+
+    userInput.disabled    = true;
+    btnSubmit.disabled    = true;
+    btnSubmit.textContent = 'Scoring…';
+    errorBanner.style.display = 'none';
+
+    try {
+      const { score, feedback } = await computeScore(userDef);
+      attemptCount++;
+      pendingResult = { score, userDef, feedback };
+      pendingScore  = score;
+
+      showScoreReveal(score);
+
+    } catch (err) {
+      console.error(err);
+      showError('Scoring failed — please refresh and try again.');
+    }
+  });
+
+  /* ════════════════════════════════════════════════════
+   * COPY RESULT — three-tier fallback
+   * ════════════════════════════════════════════════════ */
+  btnShare.addEventListener('click', () => {
+    const score = lastScore ?? 0;
+    const streak = parseInt(localStorage.getItem(STREAK_KEY) || '0', 10);
+    const streakLine = streak >= 2 ? `\n🔥 ${streak} day streak` : '';
+    const saved = (() => { try { return JSON.parse(localStorage.getItem(TODAY_KEY) || '{}'); } catch { return {}; } })();
+    const attempts = saved.attempts || 1;
+    const attemptLine = attempts > 1 ? ` · ${attempts} attempts` : '';
+    const text =
+      `Dictle #${GAME_DAY} ${scoreToEmoji(score)}\n` +
+      `${DAILY.word} · ${score}/100${attemptLine}` +
+      streakLine + '\n' +
+      `Can you beat me? → https://playdictle.vercel.app`;
+
+    function onCopied() {
+      btnShare.textContent = '✓ Copied!';
+      btnShare.classList.add('copied');
+      setTimeout(() => {
+        btnShare.innerHTML = 'Share result';
+        btnShare.classList.remove('copied');
+      }, 2000);
+    }
+
+    // Tier 1: modern Clipboard API (requires HTTPS + user gesture — works on Vercel)
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).then(onCopied).catch(legacyCopy);
+      return;
+    }
+    legacyCopy();
+
+    // Tier 2: execCommand — works in HTTP / older browsers
+    function legacyCopy() {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      try {
+        if (document.execCommand('copy')) { onCopied(); }
+        else { showShareModal(text); }
+      } catch { showShareModal(text); }
+      document.body.removeChild(ta);
+    }
+  });
+
+  // Tier 3: modal — user copies manually
+  function showShareModal(text) {
+    const overlay = document.createElement('div');
+    overlay.style.cssText =
+      'position:fixed;inset:0;background:rgba(0,0,0,0.75);' +
+      'display:flex;align-items:center;justify-content:center;z-index:999;padding:24px';
+    overlay.innerHTML = `
+      <div style="background:var(--surface);border:1px solid var(--border);
+        border-radius:12px;padding:24px;max-width:400px;width:100%">
+        <p style="font-family:var(--font-mono);font-size:0.7rem;color:var(--muted);
+          margin-bottom:12px;letter-spacing:0.1em">COPY YOUR RESULT</p>
+        <textarea readonly style="width:100%;background:var(--bg);color:var(--text);
+          border:1px solid var(--border);border-radius:8px;padding:12px;
+          font-family:var(--font-mono);font-size:0.78rem;line-height:1.6;
+          resize:none;height:120px;outline:none">${text}</textarea>
+        <button onclick="this.closest('[style]').remove()" style="
+          margin-top:12px;width:100%;padding:10px;background:#3A3830;
+          color:#EDEAE4;border:none;border-radius:2px;font-family:var(--font-mono);
+          font-weight:800;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer">Close</button>
+      </div>`;
+    overlay.querySelector('textarea').addEventListener('focus', e => e.target.select());
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
+    setTimeout(() => overlay.querySelector('textarea').select(), 50);
+  }
+
+
+
+  /* ── Cmd/Ctrl+Enter to submit ── */
+  userInput.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && !btnSubmit.disabled) {
+      e.preventDefault();
+      btnSubmit.click();
+    }
+  });
+
+  /* ════════════════════════════════════════════════════
+   * HISTORY — store per-day scores for sparkline & stats
+   * ════════════════════════════════════════════════════ */
+  const HISTORY_KEY = 'dictle_history'; // { [dayIndex]: score }
+
+  function saveHistory(score) {
+    let hist = {};
+    try { hist = JSON.parse(localStorage.getItem(HISTORY_KEY) || '{}'); } catch {}
+    hist[DAY_INDEX] = score;
+    // keep only last 90 days
+    const keys = Object.keys(hist).map(Number).sort((a,b) => a-b);
+    if (keys.length > 90) keys.slice(0, keys.length - 90).forEach(k => delete hist[k]);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(hist));
+  }
+
+  function getHistory() {
+    try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '{}'); } catch { return {}; }
+  }
+
+
+
+
+
+  // ── Dark mode toggle ────────────────────────────────
+  const themeToggle = document.getElementById('theme-toggle');
+  const savedTheme = localStorage.getItem('dictle_theme');
+  if (savedTheme === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    themeToggle.checked = true;
+  }
+
+  themeToggle.addEventListener('change', () => {
+    const next = themeToggle.checked ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('dictle_theme', next);
+  });
+
+  // ── Context accordion ───────────────────────────────
+  const contextToggle = document.getElementById('word-context-toggle');
+  const contextBody   = document.getElementById('word-context-body');
+  if (contextToggle && contextBody) {
+    contextToggle.addEventListener('click', () => {
+      const expanded = contextToggle.getAttribute('aria-expanded') === 'true';
+      contextToggle.setAttribute('aria-expanded', String(!expanded));
+      contextBody.classList.toggle('open', !expanded);
+    });
+  }
+
+  initUI();
+
+  // ── Loading screen ──────────────────────────────────
+</script>
+</body>
+</html>
+
+</body>
+</html>
+</body>
+</html>
